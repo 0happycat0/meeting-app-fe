@@ -1,13 +1,14 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import reactLogo from "./assets/react.svg";
+import viteLogo from "/vite.svg";
+import { Button } from "./components/ui/button";
+import "./App.css";
 
-import { greet } from './hello'
+import { greet } from "./hello";
 
 function App() {
-  const [count, setCount] = useState(0)
-  const res = greet("Happy")
+  const [count, setCount] = useState(0);
+  const res = greet("Happy");
   return (
     <>
       <div>
@@ -23,18 +24,19 @@ function App() {
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
         </button>
+        <div className="flex min-h-svh flex-col items-center justify-center">
+          <Button onClick={() => setCount((count) => count + 1)}>Click me</Button>
+        </div>
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
         </p>
-        <p>
-          {res}
-        </p>
+        <p>{res}</p>
       </div>
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
       </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

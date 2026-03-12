@@ -1,6 +1,6 @@
 import { RouterProvider } from "react-router-dom";
 import "./styles/App.css";
-import { router } from "./routes";
+import { router } from "./router";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 function App() {

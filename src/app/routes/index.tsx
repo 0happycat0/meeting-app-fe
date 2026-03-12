@@ -1,4 +1,4 @@
-import HomePage from "@/features/auth/HomePage";
+import LandingPage from "@/features/landing/LandingPage";
 import LoginPage from "@/features/auth/LoginPage";
 import { createBrowserRouter } from "react-router-dom";
 
@@ -9,6 +9,6 @@ export const router = createBrowserRouter([
   },
 	{
     path: "/",
-    element: <HomePage />,
+    element: <LandingPage />,
   },
 ]);

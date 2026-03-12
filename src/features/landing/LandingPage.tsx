@@ -4,7 +4,7 @@ import reactLogo from "@/assets/react.svg";
 import viteLogo from "@/assets/vite.svg";
 import { useNavigate } from "react-router-dom";
 
-export default function HomePage() {
+export default function LandingPage() {
   const [count, setCount] = useState(0);
   const navigate = useNavigate();
 

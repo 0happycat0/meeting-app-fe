@@ -13,8 +13,8 @@ import { LockSimpleIcon, UserIcon } from "@phosphor-icons/react";
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#d1e8fe] via-[#f8fafc] to-[#dfedff]">
-      <Card className="w-full max-w-sm shadow-xl border-0 backdrop-blur-sm">
+    <div className="min-h-dvh flex items-center justify-center p-4 sm:p-8 bg-linear-to-br from-[#d1e8fe] via-[#f8fafc] to-[#dfedff]">
+      <Card className="w-full max-w-sm shadow-xl border-0 backdrop-blur-sm mt-auto mb-auto">
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Đăng nhập</CardTitle>
           <CardDescription>

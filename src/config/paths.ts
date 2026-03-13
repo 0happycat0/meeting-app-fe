@@ -8,6 +8,17 @@ export const paths = {
     }
   },
   app: {
-    
+    root: {
+      path: '/app'
+    },
+    home: {
+      path: ''
+    },
+    meetings: {
+      path: '/meetings'
+    },
+    meeting: {
+      path: (id: string) => `/meeting/${id}`,
+    }
   }
 } as const;

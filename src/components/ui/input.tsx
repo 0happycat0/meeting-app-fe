@@ -31,7 +31,7 @@ function Input({ className, type, icon, iconRight, ...props }: InputProps) {
         {...props}
       />
       {iconRight && (
-        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+        <div className="absolute right-3 top-0.5 translate-y-2">
           {iconRight}
         </div>
       )}

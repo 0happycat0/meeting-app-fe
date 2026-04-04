@@ -10,7 +10,13 @@ export default defineConfig({
     react(),
     tailwindcss(),
     keycloakify({
-      accountThemeImplementation: "none",
+      accountThemeImplementation: "Single-Page",
+      // Không cần file jar, chỉ cần file ftl để cập nhật theme ngay lập tức 
+      // mà không cần re-run container
+      keycloakVersionTargets: {
+        "22-to-25": true,
+        "all-other-versions": false,
+      },
     }),
   ],
   resolve: {

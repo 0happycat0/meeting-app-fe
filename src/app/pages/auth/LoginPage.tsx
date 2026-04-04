@@ -96,6 +96,7 @@ export default function LoginPage() {
           <CardFooter className="flex-col gap-2 mt-12">
             <Button
               type="submit"
+              name="login"
               className="w-full h-9"
             >
               Đăng nhập

@@ -1,263 +1,139 @@
-/**
- * Combined Username + Password login page (login.ftl) with optional WebAuthn passkey support.
- * Renders standard login form plus conditional passkey authenticator section.
- */
-import type { JSX } from "keycloakify/tools/JSX";
-import { useState } from "react";
-import { kcSanitize } from "keycloakify/lib/kcSanitize";
-import { useIsPasswordRevealed } from "keycloakify/tools/useIsPasswordRevealed";
-import { clsx } from "keycloakify/tools/clsx";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
 import type { PageProps } from "keycloakify/login/pages/PageProps";
-import { getKcClsx, type KcClsx } from "keycloakify/login/lib/kcClsx";
 import type { KcContext } from "../KcContext";
 import type { I18n } from "../i18n";
-import { useScript } from "keycloakify/login/pages/Login.useScript";
+import { kcSanitize } from "keycloakify/lib/kcSanitize";
 
-export default function Login(props: PageProps<Extract<KcContext, { pageId: "login.ftl" }>, I18n>) {
-    const { kcContext, i18n, doUseDefaultCss, Template, classes } = props;
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input, InputPassword } from "@/components/ui/input";
+import { LockSimpleIcon, UserIcon } from "@phosphor-icons/react";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 
-    const { kcClsx } = getKcClsx({
-        doUseDefaultCss,
-        classes
-    });
+const loginSchema = z.object({
+  username: z.string().min(1, { message: "Vui lòng nhập tên đăng nhập" }),
+  password: z.string().min(1, { message: "Vui lòng nhập mật khẩu" }),
+});
 
-    const { social, realm, url, usernameHidden, login, auth, registrationDisabled, messagesPerField, enableWebAuthnConditionalUI, authenticators } =
-        kcContext;
+type LoginFormValues = z.infer<typeof loginSchema>;
 
-    const { msg, msgStr } = i18n;
+export default function Login(
+  props: PageProps<Extract<KcContext, { pageId: "login.ftl" }>, I18n>
+) {
+  const { kcContext } = props;
+  const { url, realm, login, messagesPerField } = kcContext;
 
-    const [isLoginButtonDisabled, setIsLoginButtonDisabled] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      // Lấy username từ Keycloak nếu người dùng nhập sai pass ở lần trước đó
+      username: login.username ?? "",
+      password: "",
+    },
+  });
 
-    const webAuthnButtonId = "authenticateWebAuthnButton";
+  const onSubmit = () => {
+    // Khi Zod validate thành công ở client, tiến hành submit thật lên Keycloak
+    const formElement = document.getElementById("kc-form-login") as HTMLFormElement;
+    formElement.submit();
+  };
 
-    useScript({
-        webAuthnButtonId,
-        kcContext,
-        i18n
-    });
+  return (
+    <div className="min-h-dvh flex items-center justify-center bg-linear-to-br from-[#d1e8fe] via-[#f8fafc] to-[#dfedff]">
+      <Card className="w-full max-w-sm shadow-xl border-0 backdrop-blur-sm mt-auto mb-auto">
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl">Đăng nhập</CardTitle>
+          <CardDescription>
+            Vui lòng đăng nhập để truy cập hệ thống
+          </CardDescription>
+        </CardHeader>
 
-    return (
-        <Template
-            kcContext={kcContext}
-            i18n={i18n}
-            doUseDefaultCss={doUseDefaultCss}
-            classes={classes}
-            displayMessage={!messagesPerField.existsError("username", "password")}
-            headerNode={msg("loginAccountTitle")}
-            displayInfo={realm.password && realm.registrationAllowed && !registrationDisabled}
-            infoNode={
-                <div id="kc-registration-container">
-                    <div id="kc-registration">
-                        <span>
-                            {msg("noAccount")}{" "}
-                            <a tabIndex={8} href={url.registrationUrl}>
-                                {msg("doRegister")}
-                            </a>
-                        </span>
-                    </div>
-                </div>
-            }
-            socialProvidersNode={
-                <>
-                    {realm.password && social?.providers !== undefined && social.providers.length !== 0 && (
-                        <div id="kc-social-providers" className={kcClsx("kcFormSocialAccountSectionClass")}>
-                            <hr />
-                            <h2>{msg("identity-provider-login-label")}</h2>
-                            <ul className={kcClsx("kcFormSocialAccountListClass", social.providers.length > 3 && "kcFormSocialAccountListGridClass")}>
-                                {social.providers.map((...[p, , providers]) => (
-                                    <li key={p.alias}>
-                                        <a
-                                            id={`social-${p.alias}`}
-                                            className={kcClsx(
-                                                "kcFormSocialAccountListButtonClass",
-                                                providers.length > 3 && "kcFormSocialAccountGridItem"
-                                            )}
-                                            type="button"
-                                            href={p.loginUrl}
-                                        >
-                                            {p.iconClasses && <i className={clsx(kcClsx("kcCommonLogoIdP"), p.iconClasses)} aria-hidden="true"></i>}
-                                            <span
-                                                className={clsx(kcClsx("kcFormSocialAccountNameClass"), p.iconClasses && "kc-social-icon-text")}
-                                                dangerouslySetInnerHTML={{ __html: kcSanitize(p.displayName) }}
-                                            ></span>
-                                        </a>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                </>
-            }
-        >
-            <div id="kc-form">
-                <div id="kc-form-wrapper">
-                    {realm.password && (
-                        <form
-                            id="kc-form-login"
-                            onSubmit={() => {
-                                setIsLoginButtonDisabled(true);
-                                return true;
-                            }}
-                            action={url.loginAction}
-                            method="post"
-                        >
-                            {!usernameHidden && (
-                                <div className={kcClsx("kcFormGroupClass")}>
-                                    <label htmlFor="username" className={kcClsx("kcLabelClass")}>
-                                        {!realm.loginWithEmailAllowed
-                                            ? msg("username")
-                                            : !realm.registrationEmailAsUsername
-                                              ? msg("usernameOrEmail")
-                                              : msg("email")}
-                                    </label>
-                                    <input
-                                        tabIndex={2}
-                                        id="username"
-                                        className={kcClsx("kcInputClass")}
-                                        name="username"
-                                        defaultValue={login.username ?? ""}
-                                        type="text"
-                                        autoFocus
-                                        autoComplete={enableWebAuthnConditionalUI ? "username webauthn" : "username"}
-                                        aria-invalid={messagesPerField.existsError("username", "password")}
-                                    />
-                                    {messagesPerField.existsError("username", "password") && (
-                                        <span
-                                            id="input-error"
-                                            className={kcClsx("kcInputErrorMessageClass")}
-                                            aria-live="polite"
-                                            dangerouslySetInnerHTML={{
-                                                __html: kcSanitize(messagesPerField.getFirstError("username", "password"))
-                                            }}
-                                        />
-                                    )}
-                                </div>
-                            )}
-
-                            <div className={kcClsx("kcFormGroupClass")}>
-                                <label htmlFor="password" className={kcClsx("kcLabelClass")}>
-                                    {msg("password")}
-                                </label>
-                                <PasswordWrapper kcClsx={kcClsx} i18n={i18n} passwordInputId="password">
-                                    <input
-                                        tabIndex={3}
-                                        id="password"
-                                        className={kcClsx("kcInputClass")}
-                                        name="password"
-                                        type="password"
-                                        autoComplete="current-password"
-                                        aria-invalid={messagesPerField.existsError("username", "password")}
-                                    />
-                                </PasswordWrapper>
-                                {usernameHidden && messagesPerField.existsError("username", "password") && (
-                                    <span
-                                        id="input-error"
-                                        className={kcClsx("kcInputErrorMessageClass")}
-                                        aria-live="polite"
-                                        dangerouslySetInnerHTML={{
-                                            __html: kcSanitize(messagesPerField.getFirstError("username", "password"))
-                                        }}
-                                    />
-                                )}
-                            </div>
-
-                            <div className={kcClsx("kcFormGroupClass", "kcFormSettingClass")}>
-                                <div id="kc-form-options">
-                                    {realm.rememberMe && !usernameHidden && (
-                                        <div className="checkbox">
-                                            <label>
-                                                <input
-                                                    tabIndex={5}
-                                                    id="rememberMe"
-                                                    name="rememberMe"
-                                                    type="checkbox"
-                                                    defaultChecked={!!login.rememberMe}
-                                                />{" "}
-                                                {msg("rememberMe")}
-                                            </label>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className={kcClsx("kcFormOptionsWrapperClass")}>
-                                    {realm.resetPasswordAllowed && (
-                                        <span>
-                                            <a tabIndex={6} href={url.loginResetCredentialsUrl}>
-                                                {msg("doForgotPassword")}
-                                            </a>
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div id="kc-form-buttons" className={kcClsx("kcFormGroupClass")}>
-                                <input type="hidden" id="id-hidden-input" name="credentialId" value={auth.selectedCredential} />
-                                <input
-                                    tabIndex={7}
-                                    disabled={isLoginButtonDisabled}
-                                    className={kcClsx("kcButtonClass", "kcButtonPrimaryClass", "kcButtonBlockClass", "kcButtonLargeClass")}
-                                    name="login"
-                                    id="kc-login"
-                                    type="submit"
-                                    value={msgStr("doLogIn")}
-                                />
-                            </div>
-                        </form>
-                    )}
-                </div>
-            </div>
-            {enableWebAuthnConditionalUI && (
-                <>
-                    <form id="webauth" action={url.loginAction} method="post">
-                        <input type="hidden" id="clientDataJSON" name="clientDataJSON" />
-                        <input type="hidden" id="authenticatorData" name="authenticatorData" />
-                        <input type="hidden" id="signature" name="signature" />
-                        <input type="hidden" id="credentialId" name="credentialId" />
-                        <input type="hidden" id="userHandle" name="userHandle" />
-                        <input type="hidden" id="error" name="error" />
-                    </form>
-
-                    {authenticators !== undefined && authenticators.authenticators.length !== 0 && (
-                        <>
-                            <form id="authn_select" className={kcClsx("kcFormClass")}>
-                                {authenticators.authenticators.map((authenticator, i) => (
-                                    <input key={i} type="hidden" name="authn_use_chk" readOnly value={authenticator.credentialId} />
-                                ))}
-                            </form>
-                        </>
-                    )}
-                    <br />
-
-                    <input
-                        id={webAuthnButtonId}
-                        type="button"
-                        className={kcClsx("kcButtonClass", "kcButtonDefaultClass", "kcButtonBlockClass", "kcButtonLargeClass")}
-                        value={msgStr("passkey-doAuthenticate")}
-                    />
-                </>
+        {/* Form bắt buộc phải có ID, Action và Method POST để submit lên Keycloak */}
+        <form id="kc-form-login" action={url.loginAction} method="post" onSubmit={handleSubmit(onSubmit)}>
+          <CardContent>
+            {/* Vùng hiển thị lỗi từ Server (Ví dụ: Sai mật khẩu) */}
+            {messagesPerField.existsError("username", "password") && (
+              <div 
+                className="mb-4 p-3 rounded-md bg-red-100 text-red-600 text-sm"
+                dangerouslySetInnerHTML={{
+                  __html: kcSanitize(messagesPerField.getFirstError("username", "password"))
+                }}
+              />
             )}
-        </Template>
-    );
-}
 
-function PasswordWrapper(props: { kcClsx: KcClsx; i18n: I18n; passwordInputId: string; children: JSX.Element }) {
-    const { kcClsx, i18n, passwordInputId, children } = props;
+            <FieldGroup>
+              <Field data-invalid={!!errors.username}>
+                <FieldLabel htmlFor="username">Tên đăng nhập</FieldLabel>
+                <Input
+                  id="username"
+                  type="text"
+                  autoComplete="username"
+                  placeholder="Nhập tên đăng nhậpppppp"
+                  icon={<UserIcon weight="fill" />}
+                  // register("username") đã bao gồm thuộc tính name="username"
+                  {...register("username")}
+                  aria-invalid={!!errors.username}
+                />
+                {errors.username && <FieldError errors={[errors.username]} />}
+              </Field>
 
-    const { msgStr } = i18n;
+              <Field data-invalid={!!errors.password}>
+                <div className="flex items-center">
+                  <FieldLabel htmlFor="password">Mật khẩu</FieldLabel>
+                  
+                  {/* Link Quên mật khẩu được trỏ động về cấu hình của Keycloak */}
+                  {realm.resetPasswordAllowed && (
+                    <a
+                      href={url.loginResetCredentialsUrl}
+                      className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                    >
+                      Quên mật khẩu?
+                    </a>
+                  )}
+                </div>
+                <InputPassword
+                  id="password"
+                  placeholder="Nhập mật khẩu"
+                  icon={<LockSimpleIcon weight="fill" />}
+                  {...register("password")}
+                  aria-invalid={!!errors.password}
+                />
+                {errors.password && <FieldError errors={[errors.password]} />}
+              </Field>
+            </FieldGroup>
+          </CardContent>
 
-    const { isPasswordRevealed, toggleIsPasswordRevealed } = useIsPasswordRevealed({ passwordInputId });
-
-    return (
-        <div className={kcClsx("kcInputGroup")}>
-            {children}
-            <button
-                type="button"
-                className={kcClsx("kcFormPasswordVisibilityButtonClass")}
-                aria-label={msgStr(isPasswordRevealed ? "hidePassword" : "showPassword")}
-                aria-controls={passwordInputId}
-                onClick={toggleIsPasswordRevealed}
+          <CardFooter className="flex-col gap-2 mt-12">
+            <Button
+              type="submit"
+              name="login"
+              id="kc-login"
+              className="w-full h-9"
             >
-                <i className={kcClsx(isPasswordRevealed ? "kcFormPasswordVisibilityIconHide" : "kcFormPasswordVisibilityIconShow")} aria-hidden />
-            </button>
-        </div>
-    );
+              Đăng nhập
+            </Button>
+          </CardFooter>
+        </form>
+      </Card>
+    </div>
+  );
 }

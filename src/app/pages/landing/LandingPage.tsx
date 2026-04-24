@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { paths } from "@/config/paths";
+import keycloak from '@/config/keycloak';
 import "./LandingPage.css";
 import { SignInIcon } from "@phosphor-icons/react";
 
@@ -8,7 +9,14 @@ export default function LandingPage() {
   const navigate = useNavigate();
 
   const handleGoToLogin = () => {
-    navigate(paths.auth.login.path);
+    // navigate(paths.auth.login.path);
+    keycloak.login();
+  };
+
+  const showToken = () => {
+    console.log("Access Token: ", keycloak.token);
+    // Token này sẽ được gắn vào header "Authorization: Bearer <token>" 
+    // khi bạn call API tới Java Spring Boot backend.
   };
 
   return (
@@ -38,6 +46,12 @@ export default function LandingPage() {
             weight="bold"
             className="w-8 h-8 mt-1"
           />
+        </Button>
+
+        <Button
+          onClick={showToken}
+        >
+          Show Token
         </Button>
       </div>
     </div>

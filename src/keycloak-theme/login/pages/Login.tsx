@@ -87,10 +87,10 @@ export default function Login(
                   id="username"
                   type="text"
                   autoComplete="username"
-                  placeholder="Nhập tên đăng nhậpppppp"
+                  placeholder="Nhập tên đăng nhập"
                   icon={<UserIcon weight="fill" />}
                   // register("username") đã bao gồm thuộc tính name="username"
-                  {...register("username")}
+                  {...register("username")} // trả về ref
                   aria-invalid={!!errors.username}
                 />
                 {errors.username && <FieldError errors={[errors.username]} />}

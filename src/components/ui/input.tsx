@@ -9,6 +9,8 @@ export interface InputProps extends React.ComponentProps<"input"> {
   iconRight?: React.ReactNode;
 }
 
+// react 19 đã có thể truyền ref vào function component (không phải dùng forwardRef nữa)
+// react hooks form mặc định sẽ trả về ref và được truyền trong props rồi
 function Input({ className, type, icon, iconRight, ...props }: InputProps) {
   return (
     <div className="relative w-full">

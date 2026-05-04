@@ -12,13 +12,13 @@ export const paths = {
       path: '/app'
     },
     home: {
-      path: ''
+      path: '/app/home'
     },
     meetings: {
-      path: '/meetings'
+      path: '/app/meetings'
     },
-    meeting: {
-      path: (id: string) => `/meeting/${id}`,
+    meetingDetails: {
+      path: (id: string) => `app/meetings/${id}`,
     }
   }
 } as const;

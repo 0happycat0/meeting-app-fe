@@ -1,8 +1,10 @@
 import LandingPage from "@/app/pages/landing/LandingPage";
-import LoginPage from "@/app/pages/auth/LoginPage";
+import AuthRedirectPage from "@/app/pages/auth/AuthRedirectPage";
 import { createBrowserRouter } from "react-router-dom";
 import { paths } from "@/config/paths";
 import AppRoot from "./pages/app/AppRoot";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import AdminRoute from "./routes/AdminRoute";
 
 export const router = createBrowserRouter([
   {
@@ -10,12 +12,25 @@ export const router = createBrowserRouter([
     element: <LandingPage />,
   },
   {
-    path: paths.auth.login.path,
-    element: <LoginPage />,
+    path: paths.auth.redirect.path,
+    element: <AuthRedirectPage />,
   },
   {
     path: paths.app.root.path,
-    element: <AppRoot/>
-  }
-	
+    element: <ProtectedRoute />,
+    children: [
+      {
+        index: true,
+        element: <AppRoot />,
+      }
+    ]
+  },
+  {
+    element: <AdminRoute />,
+    children: [
+      {
+        
+      }
+    ]
+  },
 ]);

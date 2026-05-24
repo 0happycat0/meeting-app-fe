@@ -23,7 +23,7 @@ apiClient.interceptors.request.use(
       } catch (error) {
         console.error("Không thể làm mới token, yêu cầu đăng nhập lại", error);
         keycloak.login({
-          redirectUri: window.location.origin + paths.app.root.path,
+          redirectUri: globalThis.location.origin + paths.auth.redirect.path,
         });
       }
     }

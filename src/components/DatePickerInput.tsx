@@ -1,10 +1,9 @@
 import * as React from "react";
+import { parse, isValid } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
 import { Calendar } from "@/components/ui/calendar";
-import {
-  InputGroupButton,
-} from "@/components/ui/input-group";
+import { InputGroupButton } from "@/components/ui/input-group";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -132,9 +131,10 @@ export function DatePickerInput({
 
         setInputValue(rawValue);
 
-        const parsedDate = new Date(rawValue);
+        const formatString = "dd/MM/yyyy";
+        const parsedDate = parse(rawValue, formatString, new Date());
 
-        if (isValidDate(parsedDate)) {
+        if (isValidDate(parsedDate) && rawValue.length === 10) {
           handleSelectDate(parsedDate);
           setMonth(parsedDate);
         }

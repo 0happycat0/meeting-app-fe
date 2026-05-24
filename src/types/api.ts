@@ -3,3 +3,8 @@ export type ApiResponse<T> = {
   message?: string,
   result: T,
 };
+
+export type PageResponse<T> = {
+  items: T[],
+  total: number,
+};

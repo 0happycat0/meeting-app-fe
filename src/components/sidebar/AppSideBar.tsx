@@ -1,12 +1,7 @@
 import * as React from "react";
 import {
-  BookOpen,
   LayoutDashboard,
   Users,
-  Frame,
-  Map,
-  PieChart,
-  Settings2,
   ShieldCheck,
 } from "lucide-react";
 
@@ -20,7 +15,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
 } from "@/components/ui/sidebar";
 import { paths } from "@/config/paths";
 import { useAuth } from "@/hooks/use-auth";
@@ -34,7 +28,7 @@ const data = {
       exactlyMatchPathname: true
     },
     {
-      title: "Users",
+      title: "Người dùng",
       url: paths.admin.users.path,
       icon: Users,
     },
@@ -42,10 +36,10 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user: authUser, logout } = useAuth();
+  const { user: authUser } = useAuth();
   const userData = {
-    name: authUser?.preferred_username || authUser?.name || "User",
-    email: authUser?.email || "No email",
+    name: authUser?.preferred_username || authUser?.name || "Người dùng",
+    email: authUser?.email || "Chưa có email",
   };
 
   return (
@@ -61,7 +55,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <ShieldCheck className="size-5" />
               </div>
               <div className="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
-                <h2 className="text-lg font-semibold truncate">Admin Panel</h2>
+                <h2 className="text-lg font-semibold truncate">Trang quản trị</h2>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -69,7 +63,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain
-          title="Menu"
+          title="Danh mục"
           items={data.navMain}
         />
       </SidebarContent>

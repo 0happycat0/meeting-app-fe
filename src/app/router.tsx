@@ -5,6 +5,9 @@ import { paths } from "@/config/paths";
 import AppRoot from "./pages/app/AppRoot";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AdminRoute from "./routes/AdminRoute";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import UsersPage from "./pages/admin/users/UsersPage";
 
 export const router = createBrowserRouter([
   {
@@ -29,7 +32,17 @@ export const router = createBrowserRouter([
     element: <AdminRoute />,
     children: [
       {
-        
+        element: <AdminLayout />,
+        children: [
+          {
+            path: paths.admin.root.path,
+            element: <AdminDashboard />,
+          },
+          {
+            path: paths.admin.users.path,
+            element: <UsersPage />,
+          }
+        ]
       }
     ]
   },

@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input, InputPassword } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { User } from "@/types/entities/user";
 import { DatePickerInput } from "@/components/DatePickerInput";
@@ -89,7 +89,7 @@ export default function UserDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-125">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Chỉnh sửa người dùng" : "Tạo người dùng mới"}</DialogTitle>
           <DialogDescription>
@@ -105,7 +105,7 @@ export default function UserDialog({
             <Input
               id="username"
               {...register("username")}
-              placeholder="johndoe"
+              placeholder="nguyenbinhan"
               disabled={isLoading}
             />
             {errors.username && (
@@ -119,7 +119,7 @@ export default function UserDialog({
               id="email"
               type="email"
               {...register("email")}
-              placeholder="john@example.com"
+              placeholder="nguyenbinhan@example.com"
               disabled={isLoading}
             />
             {errors.email && (
@@ -131,11 +131,11 @@ export default function UserDialog({
             <Label htmlFor="password">
               Mật khẩu {isEditing && "(để trống nếu không đổi)"}
             </Label>
-            <Input
+            <InputPassword
               id="password"
               type="password"
               {...register("password")}
-              placeholder={isEditing ? "Để trống nếu không đổi mật khẩu" : "Nhập mật khẩu"}
+              placeholder={isEditing ? "Để trống nếu không đổi mật khẩu" : "Nhập mật khẩu (ít nhất 6 ký tự)"}
               disabled={isLoading}
             />
             {errors.password && (
@@ -149,7 +149,7 @@ export default function UserDialog({
               <Input
                 id="firstName"
                 {...register("firstName")}
-                placeholder="John"
+                placeholder="An"
                 disabled={isLoading}
               />
               {errors.firstName && (
@@ -158,11 +158,11 @@ export default function UserDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="lastName">Họ</Label>
+              <Label htmlFor="lastName">Họ và tên đệm</Label>
               <Input
                 id="lastName"
                 {...register("lastName")}
-                placeholder="Doe"
+                placeholder="Nguyễn Bình"
                 disabled={isLoading}
               />
               {errors.lastName && (

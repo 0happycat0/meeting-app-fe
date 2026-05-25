@@ -4,10 +4,10 @@ export const paths = {
   },
   auth: {
     login: {
-      path: '/auth/login'
+      path: '/login'
     },
     redirect: {
-      path: '/auth/redirect'
+      path: '/redirect'
     }
   },
   app: {

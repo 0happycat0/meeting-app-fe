@@ -10,9 +10,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { useUsers, useCreateUser, useUpdateUser, useDeleteUser } from "@/features/users/api/use-users";
+import {
+  useUsers,
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+} from "@/features/users/api/use-users";
 import type { User } from "@/types/entities/user";
 import UserDialog from "./UserDialog";
 import DeleteUserDialog from "./DeleteUserDialog";
@@ -25,7 +36,7 @@ export default function UsersPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
 
-  const { data: usersResponse, isLoading, error} = useUsers();
+  const { data: usersResponse, isLoading, error } = useUsers();
   const createMutation = useCreateUser();
   const updateMutation = useUpdateUser();
   const deleteMutation = useDeleteUser();
@@ -58,7 +69,7 @@ export default function UsersPage() {
         ...editingUser,
         ...data,
       });
-      setEditingUser(null);
+      setIsEditDialogOpen(false);
       toast({
         title: "Thành công",
         description: "Cập nhật người dùng thành công",
@@ -120,13 +131,17 @@ export default function UsersPage() {
 
           {error && (
             <div className="text-center py-8">
-              <p className="text-red-500">Lỗi khi tải danh sách người dùng: {error.message}</p>
+              <p className="text-red-500">
+                Lỗi khi tải danh sách người dùng: {error.message}
+              </p>
             </div>
           )}
 
           {!isLoading && !error && users && users.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">Không tìm thấy người dùng nào</p>
+              <p className="text-muted-foreground">
+                Không tìm thấy người dùng nào
+              </p>
             </div>
           )}
 
@@ -144,7 +159,9 @@ export default function UsersPage() {
               <TableBody>
                 {users.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.username}</TableCell>
+                    <TableCell className="font-medium">
+                      {user.username}
+                    </TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
                       {user.firstName} {user.lastName}
@@ -176,7 +193,10 @@ export default function UsersPage() {
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-right">
+                  <TableCell
+                    colSpan={5}
+                    className="text-right"
+                  >
                     <span className="text-md text-muted-foreground">
                       Tổng số người dùng: {total}
                     </span>
@@ -199,10 +219,10 @@ export default function UsersPage() {
         open={isEditDialogOpen}
         onOpenChange={(open) => {
           setIsEditDialogOpen(open);
-      if (!open) {
-        // Đợi 300ms cho animation chạy xong rồi xóa data
-        setTimeout(() => setEditingUser(null), 300);
-      }
+          if (!open) {
+            // Đợi 300ms cho animation chạy xong rồi xóa data
+            setTimeout(() => setEditingUser(null), 300);
+          }
         }}
         user={editingUser}
         onSubmit={handleUpdate}

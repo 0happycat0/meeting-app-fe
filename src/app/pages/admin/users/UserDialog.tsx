@@ -42,12 +42,12 @@ export default function UserDialog({
   onSubmit,
   isLoading,
 }: Readonly<UserDialogProps>) {
-  const isEditing = !!user;
-
   const {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
@@ -60,6 +60,9 @@ export default function UserDialog({
       dob: "",
     },
   });
+
+  const isEditing = !!user;
+  const dobValue = watch("dob");
 
   useEffect(() => {
     if (user) {
@@ -173,7 +176,18 @@ export default function UserDialog({
 
           <div className="space-y-2">
             <Label htmlFor="dob">Ngày sinh</Label>
-            <DatePickerInput allowFutureDate={false}/>
+            <DatePickerInput 
+              value={dobValue ? new Date(dobValue) : undefined}
+              onChange={(date) => {
+                if (date) {
+                  const formattedDate = date.toISOString().split("T")[0];
+                  setValue("dob", formattedDate);
+                } else {
+                  setValue("dob", "");
+                }
+              }}
+              allowFutureDate={false}
+            />
             {errors.dob && (
               <p className="text-sm text-red-500">{errors.dob.message}</p>
             )}

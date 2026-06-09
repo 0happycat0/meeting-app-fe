@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@livekit/components-react": "^2.9.21",
+    "@livekit/components-styles": "^1.2.0",
     "@phosphor-icons/react": "^2.1.10",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/react-query": "^5.100.14",
@@ -22,6 +24,7 @@
     "date-fns": "^4.3.0",
     "keycloak-js": "^26.2.4",
     "keycloakify": "^11.15.3",
+    "livekit-client": "^2.19.1",
     "lucide-react": "^0.577.0",
     "motion": "^12.38.0",
     "next-themes": "^0.4.6",

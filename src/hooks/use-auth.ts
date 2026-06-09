@@ -30,9 +30,20 @@ export function useAuth() {
     isAuthenticated,
     user,
 
-    login: () => keycloak.login({
-      redirectUri: globalThis.location.origin + paths.auth.redirect.path,
-    }),
+    login: () => {
+      const originalUrl = globalThis.location.pathname + globalThis.location.search;
+      console.log("[useAuth] Storing redirect path:", originalUrl);
+      if (
+        !originalUrl.startsWith(paths.auth.redirect.path) &&
+        originalUrl !== paths.landing.path
+      ) {
+        sessionStorage.setItem("redirect_after_login", originalUrl);
+        localStorage.setItem("redirect_after_login", originalUrl);
+      }
+      return keycloak.login({
+        redirectUri: globalThis.location.origin + paths.auth.redirect.path,
+      });
+    },
     logout: () =>
       keycloak.logout({
         redirectUri: globalThis.location.origin + paths.landing.path,

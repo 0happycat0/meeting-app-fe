@@ -66,7 +66,8 @@ export default function VideoRoomPage() {
   // Load token on mount
   useEffect(() => {
     if (meetingId && authUser) {
-      const displayName = authUser.name || authUser.preferred_username || "User";
+      const savedName = sessionStorage.getItem("preview_username");
+      const displayName = savedName || authUser.name || authUser.preferred_username || "User";
       setIsTokenLoading(true);
       fetchTokenMutation.mutate(displayName, {
         onSuccess: (response) => {
@@ -183,7 +184,7 @@ export default function VideoRoomPage() {
             adaptiveStream: true,
             dynacast: true,
             videoCaptureDefaults: {
-              resolution: VideoPresets.h720.resolution,
+              resolution: VideoPresets.h1080.resolution,
             },
           }}
         >

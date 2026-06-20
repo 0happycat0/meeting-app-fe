@@ -162,6 +162,7 @@ export default function PreviewPage() {
     sessionStorage.setItem("preview_mic_enabled", choices.audioEnabled ? "true" : "false");
     sessionStorage.setItem("preview_video_device_id", choices.videoDeviceId);
     sessionStorage.setItem("preview_audio_device_id", choices.audioDeviceId);
+    sessionStorage.setItem("preview_username", choices.username);
 
     try {
       if (isHost) {
@@ -456,13 +457,4 @@ export default function PreviewPage() {
       </div>
     </div>
   );
-
-  // return (
-  //   <main data-lk-theme="default" style={{ height: '100%' }}>
-  //       <div style={{ display: 'grid', placeItems: 'center', height: '100%' }}>
-  //         <PreJoin          />
-  //       </div>
-
-  //   </main>
-  // );
 }

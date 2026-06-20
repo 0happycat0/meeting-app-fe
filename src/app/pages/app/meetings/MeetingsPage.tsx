@@ -13,6 +13,8 @@ import {
   Eye,
   Mail,
   OctagonX,
+  RefreshCw,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -49,6 +51,7 @@ import type { Meeting, MeetingStatus, MeetingType } from "@/types/entities/meeti
 import CreateMeetingDialog from "./CreateMeetingDialog";
 import CancelMeetingDialog from "./CancelMeetingDialog";
 import EndMeetingDialog from "./EndMeetingDialog";
+import EditMeetingDialog from "./EditMeetingDialog";
 import { paths } from "@/config/paths";
 
 export default function MeetingsPage() {
@@ -66,6 +69,7 @@ export default function MeetingsPage() {
   const [dialogMeetingType, setDialogMeetingType] = useState<MeetingType>("INSTANT");
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isEndDialogOpen, setIsEndDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
 
   // React Query Hooks
@@ -212,6 +216,11 @@ export default function MeetingsPage() {
             </Button>
           </form>
 
+          {/* Refresh Button */}
+          <Button variant="outline" size="icon" onClick={() => refetch()} title="Tải lại" disabled={isLoading}>
+            <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />
+          </Button>
+
           {/* Create Buttons */}
           <Button variant="outline" onClick={() => handleOpenCreateDialog("SCHEDULED")}>
             <Calendar className="size-4 mr-2" />
@@ -346,6 +355,19 @@ export default function MeetingsPage() {
                           {isHost && (
                             <>
                               {meeting.status !== "ENDED" && <DropdownMenuSeparator />}
+                              
+                              {(meeting.status === "SCHEDULED" || meeting.status === "ACTIVE") && (
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedMeeting(meeting);
+                                    setIsEditDialogOpen(true);
+                                  }}
+                                >
+                                  <Pencil className="size-4 mr-2" />
+                                  Chỉnh sửa
+                                </DropdownMenuItem>
+                              )}
+
                               {meeting.status === "SCHEDULED" && (
                                 <DropdownMenuItem
                                   className="text-red-600 dark:text-red-400"
@@ -406,6 +428,13 @@ export default function MeetingsPage() {
         meeting={selectedMeeting}
         onConfirm={handleEndMeeting}
         isLoading={endMeetingMutation.isPending}
+      />
+
+      {/* Edit Meeting Dialog */}
+      <EditMeetingDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        meeting={selectedMeeting}
       />
     </div>
   );

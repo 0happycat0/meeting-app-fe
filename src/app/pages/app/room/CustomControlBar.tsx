@@ -5,7 +5,7 @@ import {
   MediaDeviceMenu,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
-import { Users, MessageCircle, LogOut } from "lucide-react";
+import { Users, MessageCircle, LogOut, Subtitles } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -20,9 +20,11 @@ interface CustomControlBarProps {
   meetingId: string;
   onOpenParticipants: () => void;
   onOpenChat: () => void;
+  onOpenTranscript: () => void;
   onEndMeeting: () => Promise<void>;
   isPanelOpen: boolean;
   activePanelTab: string;
+  isTranscriptOpen: boolean;
   isLeavingRef: React.MutableRefObject<boolean>;
 }
 
@@ -31,9 +33,11 @@ export function CustomControlBar({
   waitingCount,
   onOpenParticipants,
   onOpenChat,
+  onOpenTranscript,
   onEndMeeting,
   isPanelOpen,
   activePanelTab,
+  isTranscriptOpen,
   isLeavingRef,
 }: CustomControlBarProps) {
   const room = useRoomContext();
@@ -105,6 +109,15 @@ export function CustomControlBar({
         title="Trò chuyện"
       >
         <MessageCircle className="size-4" />
+      </button>
+
+      {/* Transcript Toggle */}
+      <button
+        className={`lk-button ${isTranscriptOpen ? "lk-button-active" : ""} cursor-pointer`}
+        onClick={onOpenTranscript}
+        title="Phụ đề"
+      >
+        <Subtitles className="size-4" />
       </button>
 
       {/* Leave Button */}

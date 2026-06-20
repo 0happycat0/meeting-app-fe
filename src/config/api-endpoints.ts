@@ -24,4 +24,5 @@ export const API_ENDPOINTS = {
   waitingRoomReject: (meetingId: string, participantId: string) => `/meetings/${meetingId}/waiting-room/${participantId}/reject`,
   participants: (meetingId: string) => `/meetings/${meetingId}/participants`,
   removeParticipant: (meetingId: string, participantId: string) => `/meetings/${meetingId}/participants/${participantId}/remove`,
+  transcriptBatch: (meetingId: string) => `/meetings/${meetingId}/transcript-segments/batch`,
 } as const;

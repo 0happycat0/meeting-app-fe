@@ -1,23 +1,11 @@
 import React, { useState } from "react";
 import {
-  Users,
-  Hourglass,
-  UserCheck,
-  UserX,
-  Video,
-  VideoOff,
-  Mic,
-  MicOff,
-  MoreVertical,
-  Trash2,
   LayoutGrid,
   Info,
   X,
-  MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  useParticipants,
   useTracks,
   GridLayout,
   ParticipantTile,
@@ -29,21 +17,17 @@ import {
   usePinnedTracks,
   isTrackReference,
   useChat,
+  useLocalParticipant,
 } from "@livekit/components-react";
 import { RoomEvent, Track } from "livekit-client";
 import type { TrackReferenceOrPlaceholder } from "@livekit/components-core";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
@@ -54,8 +38,10 @@ import {
 } from "@/features/meetings/api/use-meetings";
 import type { Meeting } from "@/types/entities/meeting";
 
+import { useLocalTranscript } from "@/hooks/use-local-transcript";
 import { CustomControlBar } from "./CustomControlBar";
-import { CustomChatPanel } from "./CustomChatPanel";
+import { RoomSidePanel } from "./RoomSidePanel";
+import { TranscriptSidePanel } from "./TranscriptSidePanel";
 
 // Helper to safely compare track references
 const isSameTrack = (a?: any, b?: any) => {
@@ -89,10 +75,11 @@ export function RoomActiveContent({
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [activePanelTab, setActivePanelTab] = useState<"participants" | "chat">("participants");
   const [layoutMode, setLayoutMode] = useState<"auto" | "grid" | "focus">("auto");
-  const [showWaitingList, setShowWaitingList] = useState(false);
+  const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
 
-  const participants = useParticipants();
   const { chatMessages, send, isSending } = useChat();
+  const { segments, partialText, status: transcriptStatus } = useLocalTranscript(meeting.id);
+  const { localParticipant } = useLocalParticipant();
 
   // Fetch full participants from DB to map user ID to participant ID for kicking
   const { data: dbParticipantsResponse } = useMeetingParticipants(meeting.id, {
@@ -232,175 +219,68 @@ export function RoomActiveContent({
               meetingId={meeting.id}
               onOpenParticipants={() => {
                 setIsPanelOpen(true);
+                setIsTranscriptOpen(false);
                 setActivePanelTab("participants");
               }}
               onOpenChat={() => {
                 setIsPanelOpen(true);
+                setIsTranscriptOpen(false);
                 setActivePanelTab("chat");
+              }}
+              onOpenTranscript={() => {
+                setIsTranscriptOpen(!isTranscriptOpen);
+                setIsPanelOpen(false);
               }}
               onEndMeeting={handleEndMeeting}
               isPanelOpen={isPanelOpen}
               activePanelTab={activePanelTab}
+              isTranscriptOpen={isTranscriptOpen}
               isLeavingRef={isLeavingRef}
             />
           </div>
         </div>
 
         {/* Side Panel for Host & Participants & Chat details */}
-        {isPanelOpen && (
+        <RoomSidePanel
+          isPanelOpen={isPanelOpen}
+          onClose={() => setIsPanelOpen(false)}
+          activePanelTab={activePanelTab}
+          setActivePanelTab={setActivePanelTab}
+          isHost={isHost}
+          currentUserId={currentUserId}
+          waitingParticipants={waitingParticipants}
+          dbParticipants={dbParticipants}
+          handleApprove={handleApprove}
+          handleReject={handleReject}
+          handleRemoveParticipant={handleRemoveParticipant}
+          getUserFullName={getUserFullName}
+          chatMessages={chatMessages}
+          send={send}
+          isSending={isSending}
+        />
+
+        {/* Side Panel for Transcript / Captions */}
+        {isTranscriptOpen && (
           <div className="w-1/4 border-l border-neutral-200 bg-white flex flex-col h-full gap-0 z-20 shrink-0 text-neutral-900 shadow-xl">
-            <Tabs
-              value={activePanelTab}
-              onValueChange={(v) => setActivePanelTab(v as any)}
-              className="flex flex-col flex-1 h-full"
-            >
-              <div className="p-2 border-b border-neutral-200 bg-neutral-50/50 flex items-center justify-between">
-                <TabsList variant="line" className="flex-1 mr-2 grid grid-cols-2">
-                  <TabsTrigger value="participants" className="flex items-center gap-1.5 text-xs font-semibold px-2">
-                    <Users className="size-3.5" />
-                    Thành viên ({participants.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="chat" className="flex items-center gap-1.5 text-xs font-semibold px-2">
-                    <MessageCircle className="size-3.5" />
-                    Chat
-                  </TabsTrigger>
-                </TabsList>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-7 text-neutral-500 hover:text-neutral-900 shrink-0 cursor-pointer"
-                  onClick={() => setIsPanelOpen(false)}
-                >
-                  <X className="size-4" />
-                </Button>
-              </div>
-
-              <div className="flex-1 overflow-hidden relative">
-                {/* Participants List & Waiting list inside same tab */}
-                <TabsContent value="participants" className="h-full m-0 flex flex-col">
-                  <ScrollArea className="h-full p-4">
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between gap-2 border-b border-neutral-100 pb-2">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 truncate">
-                          {showWaitingList ? "Yêu cầu chờ duyệt" : "Trong phòng họp"}
-                        </h3>
-                        {isHost && (
-                          <Button
-                            variant={showWaitingList ? "default" : "outline"}
-                            size="sm"
-                            className="h-7 px-2 text-[10px] font-semibold flex items-center gap-1 shrink-0 cursor-pointer"
-                            onClick={() => setShowWaitingList(!showWaitingList)}
-                          >
-                            <Hourglass className="size-3 shrink-0" />
-                            <span>Chờ duyệt</span>
-                            {waitingParticipants.length > 0 && (
-                              <span className={`w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center shrink-0 ${showWaitingList ? "bg-white text-black" : "bg-red-500 text-white animate-pulse"}`}>
-                                {waitingParticipants.length}
-                              </span>
-                            )}
-                          </Button>
-                        )}
-                      </div>
-
-                      {showWaitingList ? (
-                        <div className="space-y-3">
-                          {waitingParticipants.length === 0 ? (
-                            <p className="text-xs text-neutral-500 italic py-4">Không có yêu cầu nào đang chờ.</p>
-                          ) : (
-                            waitingParticipants.map((p) => (
-                              <Card key={p.id} className="py-0 border border-neutral-400 text-neutral-900 shadow-none">
-                                <CardContent className="p-3 space-y-3">
-                                  <div className="flex flex-col">
-                                    <span className="text-md font-semibold text-neutral-800">{getUserFullName(p.userId)}</span>
-                                    <span className="text-xs text-neutral-500 font-semibold mt-0.5">
-                                      Nguồn: {p.joinSource === "JOIN_CODE" ? "Tham gia bằng mã" : p.joinSource === "INVITATION" ? "Tham gia từ lời mời" : p.joinSource}
-                                    </span>
-                                  </div>
-                                  <div className="flex gap-2">
-                                    <Button
-                                      size="sm"
-                                      onClick={() => handleApprove(p.id)}
-                                      className="flex-1 text-xs font-semibold h-7 cursor-pointer"
-                                    >
-                                      <UserCheck className="size-3.5 mr-1" />
-                                      Duyệt
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="destructive"
-                                      onClick={() => handleReject(p.id)}
-                                      className="flex-1 text-xs font-semibold h-7 cursor-pointer"
-                                    >
-                                      <UserX className="size-3.5 mr-1" />
-                                      Từ chối
-                                    </Button>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            ))
-                          )}
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          {participants.map((p) => {
-                            const dbParticipant = dbParticipants.find((dp) => dp.userId === p.identity);
-                            const participantRecordId = dbParticipant?.id;
-                            const canRemove = isHost && p.identity !== currentUserId && participantRecordId;
-
-                            return (
-                              <div key={p.sid} className="flex items-center justify-between text-sm py-2 border-b border-neutral-100">
-                                <span className="flex items-center gap-2">
-                                  <span className="truncate max-w-[140px] font-medium text-neutral-800">
-                                    {p.name || p.identity} {p.identity === currentUserId && "(Bạn)"}
-                                  </span>
-                                </span>
-                                <div className="flex items-center gap-2">
-                                  {p.isCameraEnabled ? (
-                                    <Video className="size-3.5 text-neutral-400" />
-                                  ) : (
-                                    <VideoOff className="size-3.5 text-red-500" />
-                                  )}
-                                  {p.isMicrophoneEnabled ? (
-                                    <Mic className={`size-3.5 ${p.isSpeaking ? "text-green-500 animate-pulse font-bold" : "text-neutral-400"}`} />
-                                  ) : (
-                                    <MicOff className="size-3.5 text-red-500" />
-                                  )}
-
-                                  {canRemove && (
-                                    <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="size-6 text-neutral-500 hover:text-neutral-900 cursor-pointer">
-                                          <MoreVertical className="size-3.5" />
-                                        </Button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end" className="bg-white border border-neutral-200 text-neutral-900 shadow-md">
-                                        <DropdownMenuItem
-                                          onClick={() => handleRemoveParticipant(participantRecordId)}
-                                          className="text-xs font-semibold text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-1.5"
-                                        >
-                                          <Trash2 className="size-3.5" />
-                                          Xóa khỏi cuộc họp
-                                        </DropdownMenuItem>
-                                      </DropdownMenuContent>
-                                    </DropdownMenu>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </TabsContent>
-
-                {/* Chat Panel */}
-                <TabsContent value="chat" className="h-full m-0 flex flex-col">
-                  <CustomChatPanel chatMessages={chatMessages} send={send} isSending={isSending} />
-                </TabsContent>
-              </div>
-            </Tabs>
+            <div className="p-2 border-b border-neutral-200 bg-neutral-50/50 flex items-center justify-between h-[45px] shrink-0">
+              <span className="text-xs font-bold uppercase tracking-wider text-neutral-700 ml-2">Phụ đề</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 text-neutral-500 hover:text-neutral-900 shrink-0 cursor-pointer"
+                onClick={() => setIsTranscriptOpen(false)}
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
+            <div className="flex-1 overflow-hidden relative">
+              <TranscriptSidePanel 
+                segments={segments} 
+                partialText={partialText} 
+                status={transcriptStatus} 
+                localParticipantName={localParticipant?.name || localParticipant?.identity || "Tôi"}
+              />
+            </div>
           </div>
         )}
       </div>

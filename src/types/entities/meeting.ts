@@ -80,11 +80,11 @@ export type MeetingParticipant = Entity<{
   updatedAt: string;
 }>;
 
-export type LiveKitJoinToken = {
+export interface LiveKitJoinToken {
   token: string;
   liveKitUrl: string;
   roomName: string;
   identity: string;
   participantName: string | null;
   expiresAt: string;
-};
+}

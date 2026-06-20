@@ -38,8 +38,12 @@ export const ERROR_MESSAGES: Record<number, string> = {
 
   // LiveKit (43xx)
   4301: "Dịch vụ phòng họp trực tuyến (LiveKit) hiện không khả dụng",
+  4302: "Tên hiển thị không hợp lệ",
 
-  // Status code
+  // Transcript (44xx)
+  4401: "Đoạn phụ đề không hợp lệ",
+
+  // Mã trạng thái HTTP chuẩn để làm fallback
   400: "Yêu cầu gửi đi không hợp lệ",
   401: "Chưa xác thực hoặc phiên làm việc đã hết hạn",
   403: "Bạn không có quyền truy cập tài nguyên này",

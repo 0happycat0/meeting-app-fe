@@ -26,6 +26,19 @@ export interface UpdateMeetingRequest {
   scheduledEndAt: string | null;
 }
 
+export interface TranscriptSegmentPayload {
+  segmentId: string;
+  text: string;
+  latencyMsFromFirstAudio?: number;
+  tokenCount?: number;
+  totalTokensEmitted?: number;
+  clientCreatedAt: string;
+}
+
+export interface UploadTranscriptBatchRequest {
+  segments: TranscriptSegmentPayload[];
+}
+
 export interface GetMyMeetingsParams {
   status?: MeetingStatus;
   type?: MeetingType;
@@ -197,7 +210,7 @@ export const fetchLiveKitJoinToken = async (
   meetingId: string,
   displayName?: string
 ): Promise<ApiResponse<LiveKitJoinToken>> => {
-  const body = displayName ? { clientMetadata: { device: "web", displayName } } : {};
+  const body = displayName ? { name: displayName } : {};
   const response = await apiClient.post<ApiResponse<LiveKitJoinToken>>(
     API_ENDPOINTS.joinToken(meetingId),
     body
@@ -267,4 +280,16 @@ export const removeParticipant = async (
     API_ENDPOINTS.removeParticipant(meetingId, participantId)
   );
   return response.data;
+};
+
+// POST /meetings/{meetingId}/transcript-segments/batch
+export const uploadTranscriptBatch = async (
+  meetingId: string,
+  data: UploadTranscriptBatchRequest
+): Promise<any> => {
+  const response = await apiClient.post<ApiResponse<any>>(
+    API_ENDPOINTS.transcriptBatch(meetingId),
+    data
+  );
+  return response.data.result;
 };

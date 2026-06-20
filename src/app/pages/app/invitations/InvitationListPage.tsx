@@ -10,6 +10,7 @@ import {
   User,
   ArrowLeft,
   ChevronDown,
+  RefreshCw,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -253,7 +254,7 @@ function InvitationItem({
 export function InvitationListPage() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<FilterTab>("all");
-  const { data: invitationsResponse, isLoading, error } = useMyInvitations();
+  const { data: invitationsResponse, isLoading, error, refetch } = useMyInvitations();
   const acceptInvitation = useAcceptInvitation();
   const declineInvitation = useDeclineInvitation();
 
@@ -359,6 +360,16 @@ export function InvitationListPage() {
             {pendingCount} chờ duyệt
           </Badge>
         )}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => refetch()}
+          title="Tải lại"
+          disabled={isLoading}
+          className="ml-auto"
+        >
+          <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />
+        </Button>
       </div>
 
       <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterTab)} className="w-full">

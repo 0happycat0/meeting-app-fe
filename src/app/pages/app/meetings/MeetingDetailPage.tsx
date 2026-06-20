@@ -10,6 +10,10 @@ import {
   Users,
   CornerDownRight,
   UserX,
+  Pencil,
+  MoreHorizontal,
+  Trash2,
+  OctagonX,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -35,6 +39,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -42,10 +53,15 @@ import {
   useMeetingInvitations,
   useCreateInvitation,
   useCancelInvitation,
+  useCancelMeeting,
+  useEndMeeting,
 } from "@/features/meetings/api/use-meetings";
 import { useUsers } from "@/features/users/api/use-users";
 import type { MeetingStatus, MeetingType } from "@/types/entities/meeting";
 import { paths } from "@/config/paths";
+import CancelMeetingDialog from "./CancelMeetingDialog";
+import EndMeetingDialog from "./EndMeetingDialog";
+import EditMeetingDialog from "./EditMeetingDialog";
 
 export default function MeetingDetailPage() {
   const { meetingId } = useParams<{ meetingId: string }>();
@@ -79,6 +95,13 @@ export default function MeetingDetailPage() {
 
   const createInvitationMutation = useCreateInvitation(meetingId ?? "");
   const cancelInvitationMutation = useCancelInvitation(meetingId ?? "");
+  const cancelMeetingMutation = useCancelMeeting();
+  const endMeetingMutation = useEndMeeting();
+
+  // Dialog State
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [isEndDialogOpen, setIsEndDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const meeting = meetingResponse?.result;
   const rawInvitations = invitationsResponse?.result.items ?? [];
@@ -135,6 +158,28 @@ export default function MeetingDetailPage() {
     setCopiedJoinCode(true);
     toast.success("Đã sao chép mã tham gia cuộc họp!");
     setTimeout(() => setCopiedJoinCode(false), 2000);
+  };
+
+  const handleCancelMeeting = async () => {
+    if (!meeting) return;
+    try {
+      await cancelMeetingMutation.mutateAsync(meeting.id);
+      toast.success("Đã hủy cuộc họp thành công");
+      setIsCancelDialogOpen(false);
+    } catch (error: any) {
+      toast.error(error.message || "Không thể hủy cuộc họp");
+    }
+  };
+
+  const handleEndMeeting = async () => {
+    if (!meeting) return;
+    try {
+      await endMeetingMutation.mutateAsync(meeting.id);
+      toast.success("Đã kết thúc cuộc họp thành công");
+      setIsEndDialogOpen(false);
+    } catch (error: any) {
+      toast.error(error.message || "Không thể kết thúc cuộc họp");
+    }
   };
 
   const handleJoinMeeting = () => {
@@ -252,24 +297,70 @@ export default function MeetingDetailPage() {
                   {meeting.title}
                 </h1>
                 <div className="flex gap-2">
-                  <span className="inline-flex items-center rounded-full bg-neutral-100 dark:bg-neutral-800 px-2.5 py-0.5 text-xs font-normal text-neutral-600 dark:text-neutral-300 border border-transparent">
+                  <Badge variant="secondary">
                     {meeting.meetingType === "INSTANT" ? "Tức thì" : "Đặt lịch"}
-                  </span>
+                  </Badge>
                   {renderStatusBadge(meeting.status)}
                 </div>
               </div>
 
-              {/* Join button */}
-              {meeting.status !== "CANCELLED" && meeting.status !== "ENDED" && (
-                <Button
-                  size="lg"
-                  onClick={handleJoinMeeting}
-                  className="shadow-lg shrink-0"
-                >
-                  <CornerDownRight className="size-5 mr-2" />
-                  Tham gia
-                </Button>
-              )}
+              {/* Actions & Join button */}
+              <div className="flex items-center gap-3 shrink-0">
+                {meeting.status !== "CANCELLED" && meeting.status !== "ENDED" && (
+                  <Button
+                    size="lg"
+                    onClick={handleJoinMeeting}
+                    className="shadow-lg"
+                  >
+                    <CornerDownRight className="size-5 mr-2" />
+                    Tham gia
+                  </Button>
+                )}
+                {isHost && (meeting.status === "ACTIVE" || meeting.status === "SCHEDULED") && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="size-5 text-neutral-600 dark:text-neutral-300" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-40 bg-white border border-neutral-200 text-neutral-900 shadow-md">
+                      <DropdownMenuItem
+                        onClick={() => setIsEditDialogOpen(true)}
+                        className="cursor-pointer font-semibold text-xs text-neutral-700 hover:bg-neutral-50"
+                      >
+                        <Pencil className="size-4 mr-2" />
+                        Chỉnh sửa
+                      </DropdownMenuItem>
+
+                      {meeting.status === "SCHEDULED" && (
+                        <>
+                          <DropdownMenuSeparator className="border-neutral-100" />
+                          <DropdownMenuItem
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer font-semibold text-xs"
+                            onClick={() => setIsCancelDialogOpen(true)}
+                          >
+                            <Trash2 className="size-4 mr-2" />
+                            Hủy lịch
+                          </DropdownMenuItem>
+                        </>
+                      )}
+
+                      {meeting.status === "ACTIVE" && (
+                        <>
+                          <DropdownMenuSeparator className="border-neutral-100" />
+                          <DropdownMenuItem
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer font-semibold text-xs"
+                            onClick={() => setIsEndDialogOpen(true)}
+                          >
+                            <OctagonX className="size-4 mr-2" />
+                            Kết thúc
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
             </div>
 
             <hr className="border-neutral-100 dark:border-neutral-800" />
@@ -278,223 +369,222 @@ export default function MeetingDetailPage() {
               {/* Left Column: Meeting Details */}
               <div className="lg:col-span-11 space-y-6">
 
-              {/* Description & dates info */}
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                <div className={`${meeting.meetingType === "SCHEDULED" ? "md:col-span-3" : "md:col-span-4"} space-y-2`}>
-                  <Label className="text-sm font-medium">Mô tả</Label>
-                  <p className="text-neutral-800 dark:text-neutral-200 text-sm leading-relaxed whitespace-pre-wrap">
-                    {meeting.description || "Không có mô tả cuộc họp."}
-                  </p>
-                </div>
-                {meeting.meetingType === "SCHEDULED" && (
-                  <div className="space-y-4 md:border-l md:border-neutral-100 md:dark:border-neutral-800 md:pl-4 col-span-1 md:col-span-1">
-                    {meeting.scheduledStartAt && (
-                      <div className="space-y-1">
-                        <Label className="text-xs font-medium">Thời gian bắt đầu</Label>
-                        <p className="text-neutral-900 dark:text-neutral-100 text-xs">
-                          {format(new Date(meeting.scheduledStartAt), "HH:mm d 'thg' M, yyyy", { locale: vi })}
-                        </p>
-                      </div>
-                    )}
-                    {meeting.scheduledEndAt && (
-                      <div className="space-y-1">
-                        <Label className="text-xs font-medium">Thời gian kết thúc</Label>
-                        <p className="text-neutral-900 dark:text-neutral-100 text-xs">
-                          {format(new Date(meeting.scheduledEndAt), "HH:mm d 'thg' M, yyyy", { locale: vi })}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-                <div className="space-y-4 md:border-l md:border-neutral-100 md:dark:border-neutral-800 md:pl-4 col-span-1 md:col-span-1">
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium">Chủ trì</Label>
-                    <p className="text-neutral-800 dark:text-neutral-200 text-sm font-semibold">
-                      {getHostNameText()}
+                {/* Description & dates info */}
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                  <div className={`${meeting.meetingType === "SCHEDULED" ? "md:col-span-3" : "md:col-span-4"} space-y-2`}>
+                    <Label className="text-sm font-medium">Mô tả</Label>
+                    <p className="text-neutral-800 dark:text-neutral-200 text-sm leading-relaxed whitespace-pre-wrap">
+                      {meeting.description || "Không có mô tả cuộc họp."}
                     </p>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium">Ngày tạo</Label>
-                    <p className="text-neutral-800 dark:text-neutral-200 text-xs">
-                      {format(new Date(meeting.createdAt), "HH:mm d 'thg' M, yyyy", { locale: vi })}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Join Info */}
-              <div className="space-y-4">
-                <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">Thông tin tham gia</h2>
-                <Card className="border border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/10">
-                  <CardContent className="p-4 space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs text-neutral-400 font-medium">Mã tham gia</Label>
-                      <div className="flex items-center gap-2">
-                        <div className="inline-block bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg px-4 py-2 font-mono text-xl font-bold tracking-[0.2em] text-neutral-950 dark:text-neutral-50 shadow-sm">
-                          {meeting.joinCode.split("").join(" ")}
+                  {meeting.meetingType === "SCHEDULED" && (
+                    <div className="space-y-4 md:border-l md:border-neutral-100 md:dark:border-neutral-800 md:pl-4 col-span-1 md:col-span-1">
+                      {meeting.scheduledStartAt && (
+                        <div className="space-y-1">
+                          <Label className="text-xs font-medium">Thời gian bắt đầu</Label>
+                          <p className="text-neutral-900 dark:text-neutral-100 text-xs">
+                            {format(new Date(meeting.scheduledStartAt), "HH:mm d 'thg' M, yyyy", { locale: vi })}
+                          </p>
                         </div>
-                        <Button size="icon" variant="outline" onClick={handleCopyJoinCode} className="h-10 w-10">
-                          {copiedJoinCode ? (
-                            <Check className="size-4 text-green-500" />
-                          ) : (
-                            <Copy className="size-4" />
-                          )}
-                        </Button>
-                      </div>
+                      )}
+                      {meeting.scheduledEndAt && (
+                        <div className="space-y-1">
+                          <Label className="text-xs font-medium">Thời gian kết thúc</Label>
+                          <p className="text-neutral-900 dark:text-neutral-100 text-xs">
+                            {format(new Date(meeting.scheduledEndAt), "HH:mm d 'thg' M, yyyy", { locale: vi })}
+                          </p>
+                        </div>
+                      )}
                     </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-xs text-neutral-400 font-medium">Link tham gia</Label>
-                      <div className="flex gap-2 max-w-xl">
-                        <Input readOnly value={joinUrl} className="bg-white dark:bg-neutral-900 font-mono text-xs h-9" />
-                        <Button size="icon" variant="outline" onClick={handleCopyLink} className="h-9 w-9 shrink-0">
-                          {copied ? (
-                            <Check className="size-4 text-green-500" />
-                          ) : (
-                            <Copy className="size-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            {/* Right Column: Invitations & Invite Form */}
-            <div className="lg:col-span-5 space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Users className="size-5 text-neutral-500" />
-                  <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">Người được mời</h2>
-                </div>
-
-                {/* Invited list with scroll limit */}
-                <ScrollArea className="border border-neutral-100 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-900/50 max-h-[220px]">
-                  {isInvitationsLoading ? (
-                    <div className="flex items-center justify-center p-8 space-y-2">
-                      <Spinner className="size-4" />
-                      <span className="text-xs text-muted-foreground ml-2">Đang tải danh sách lời mời...</span>
-                    </div>
-                  ) : invitations.length === 0 ? (
-                    <div className="p-8 text-center text-sm text-neutral-400">
-                      Chưa có thành viên nào được mời tham gia cuộc họp này.
-                    </div>
-                  ) : (
-                    <Table>
-                      <TableHeader className="sticky top-0 bg-white dark:bg-neutral-950 z-10 shadow-[0_1px_0_0_rgba(0,0,0,0.05)]">
-                        <TableRow>
-                          <TableHead className="font-medium text-xs py-2">Thành viên</TableHead>
-                          <TableHead className="font-medium text-xs py-2">Email</TableHead>
-                          <TableHead className="font-medium text-xs py-2">Trạng thái</TableHead>
-                          <TableHead className="w-[80px] py-2"></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {invitations.map((inv) => {
-                          const userDetail = getUserDetails(inv.inviteeId);
-                          return (
-                            <TableRow key={inv.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-900/20">
-                              <TableCell className="font-medium py-2">
-                                <div className="flex flex-col">
-                                  <span className="font-semibold text-neutral-900 dark:text-neutral-100 text-xs">
-                                    {userDetail.fullName}
-                                  </span>
-                                  <span className="text-[10px] text-muted-foreground">@{userDetail.username}</span>
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-xs text-neutral-600 dark:text-neutral-300 py-2">
-                                {userDetail.email}
-                              </TableCell>
-                              <TableCell className="py-2">
-                                <span
-                                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                                    inv.status === "PENDING"
-                                      ? "bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400"
-                                      : inv.status === "ACCEPTED"
-                                      ? "bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400"
-                                      : inv.status === "DECLINED"
-                                      ? "bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400"
-                                      : "bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
-                                  }`}
-                                >
-                                  {inv.status === "PENDING"
-                                    ? "Đang chờ"
-                                    : inv.status === "ACCEPTED"
-                                    ? "Đã đồng ý"
-                                    : inv.status === "DECLINED"
-                                    ? "Đã từ chối"
-                                    : "Đã hủy"}
-                                </span>
-                              </TableCell>
-                              <TableCell className="py-2 text-right">
-                                {inv.status === "PENDING" && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 h-7 text-[10px] px-2"
-                                    onClick={() => handleCancelInvitation(inv.id)}
-                                  >
-                                    Thu hồi
-                                  </Button>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
                   )}
-                </ScrollArea>
+                  <div className="space-y-4 md:border-l md:border-neutral-100 md:dark:border-neutral-800 md:pl-4 col-span-1 md:col-span-1">
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium">Chủ trì</Label>
+                      <p className="text-neutral-800 dark:text-neutral-200 text-sm font-semibold">
+                        {getHostNameText()}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium">Ngày tạo</Label>
+                      <p className="text-neutral-800 dark:text-neutral-200 text-xs">
+                        {format(new Date(meeting.createdAt), "HH:mm d 'thg' M, yyyy", { locale: vi })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
-                {/* Host invitation form */}
-                {(meeting.status === "SCHEDULED" || meeting.status === "ACTIVE") && (
-                  <Card className="border border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900/50 mt-4">
+                {/* Join Info */}
+                <div className="space-y-4">
+                  <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">Thông tin tham gia</h2>
+                  <Card className="border border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/10">
                     <CardContent className="p-4 space-y-4">
-                      <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2 text-xs">
-                        <UserPlus className="size-4" /> Mời thêm thành viên
-                      </h3>
-                      <div className="flex flex-col sm:flex-row gap-2 max-w-xl">
-                        <div className="flex-1">
-                          <Select
-                            value={selectedUserId}
-                            onValueChange={setSelectedUserId}
-                            disabled={isUsersLoading || createInvitationMutation.isPending}
-                          >
-                            <SelectTrigger className="w-full bg-white dark:bg-neutral-950 h-9 text-xs">
-                              <SelectValue placeholder="Chọn thành viên..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {eligibleUsers.length === 0 ? (
-                                <SelectItem value="none" disabled>
-                                  Không có thành viên khả dụng để mời
-                                </SelectItem>
-                              ) : (
-                                eligibleUsers.map((user) => (
-                                  <SelectItem key={user.id} value={user.id} className="text-xs">
-                                    {user.lastName} {user.firstName} ({user.email})
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
+                      <div className="space-y-2">
+                        <Label className="text-xs text-neutral-400 font-medium">Mã tham gia</Label>
+                        <div className="flex items-center gap-2">
+                          <div className="inline-block bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg px-4 py-2 font-mono text-xl font-bold tracking-[0.2em] text-neutral-950 dark:text-neutral-50 shadow-sm">
+                            {meeting.joinCode.split("").join(" ")}
+                          </div>
+                          <Button size="icon" variant="outline" onClick={handleCopyJoinCode} className="h-10 w-10">
+                            {copiedJoinCode ? (
+                              <Check className="size-4 text-green-500" />
+                            ) : (
+                              <Copy className="size-4" />
+                            )}
+                          </Button>
                         </div>
-                        <Button
-                          size="sm"
-                          onClick={handleInviteUser}
-                          disabled={!selectedUserId || createInvitationMutation.isPending}
-                          className="h-9 text-xs"
-                        >
-                          Mời
-                        </Button>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-xs text-neutral-400 font-medium">Link tham gia</Label>
+                        <div className="flex gap-2 max-w-xl">
+                          <Input readOnly value={joinUrl} className="bg-white dark:bg-neutral-900 font-mono text-xs h-9" />
+                          <Button size="icon" variant="outline" onClick={handleCopyLink} className="h-9 w-9 shrink-0">
+                            {copied ? (
+                              <Check className="size-4 text-green-500" />
+                            ) : (
+                              <Copy className="size-4" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
-                )}
+                </div>
+              </div>
+
+              {/* Right Column: Invitations & Invite Form */}
+              <div className="lg:col-span-5 space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Users className="size-5 text-neutral-500" />
+                    <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">Người được mời</h2>
+                  </div>
+
+                  {/* Invited list with scroll limit */}
+                  <ScrollArea className="border border-neutral-100 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-900/50 max-h-[220px]">
+                    {isInvitationsLoading ? (
+                      <div className="flex items-center justify-center p-8 space-y-2">
+                        <Spinner className="size-4" />
+                        <span className="text-xs text-muted-foreground ml-2">Đang tải danh sách lời mời...</span>
+                      </div>
+                    ) : invitations.length === 0 ? (
+                      <div className="p-8 text-center text-sm text-neutral-400">
+                        Chưa có thành viên nào được mời tham gia cuộc họp này.
+                      </div>
+                    ) : (
+                      <Table>
+                        <TableHeader className="sticky top-0 bg-white dark:bg-neutral-950 z-10 shadow-[0_1px_0_0_rgba(0,0,0,0.05)]">
+                          <TableRow>
+                            <TableHead className="font-medium text-xs py-2">Thành viên</TableHead>
+                            <TableHead className="font-medium text-xs py-2">Email</TableHead>
+                            <TableHead className="font-medium text-xs py-2">Trạng thái</TableHead>
+                            <TableHead className="w-[80px] py-2"></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {invitations.map((inv) => {
+                            const userDetail = getUserDetails(inv.inviteeId);
+                            return (
+                              <TableRow key={inv.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-900/20">
+                                <TableCell className="font-medium py-2">
+                                  <div className="flex flex-col">
+                                    <span className="font-semibold text-neutral-900 dark:text-neutral-100 text-xs">
+                                      {userDetail.fullName}
+                                    </span>
+                                    <span className="text-[10px] text-muted-foreground">@{userDetail.username}</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-xs text-neutral-600 dark:text-neutral-300 py-2">
+                                  {userDetail.email}
+                                </TableCell>
+                                <TableCell className="py-2">
+                                  <span
+                                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${inv.status === "PENDING"
+                                        ? "bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400"
+                                        : inv.status === "ACCEPTED"
+                                          ? "bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400"
+                                          : inv.status === "DECLINED"
+                                            ? "bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400"
+                                            : "bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
+                                      }`}
+                                  >
+                                    {inv.status === "PENDING"
+                                      ? "Đang chờ"
+                                      : inv.status === "ACCEPTED"
+                                        ? "Đã đồng ý"
+                                        : inv.status === "DECLINED"
+                                          ? "Đã từ chối"
+                                          : "Đã hủy"}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="py-2 text-right">
+                                  {inv.status === "PENDING" && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 h-7 text-[10px] px-2"
+                                      onClick={() => handleCancelInvitation(inv.id)}
+                                    >
+                                      Thu hồi
+                                    </Button>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </ScrollArea>
+
+                  {/* Host invitation form */}
+                  {(meeting.status === "SCHEDULED" || meeting.status === "ACTIVE") && (
+                    <Card className="border border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900/50 mt-4">
+                      <CardContent className="p-4 space-y-4">
+                        <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2 text-xs">
+                          <UserPlus className="size-4" /> Mời thêm thành viên
+                        </h3>
+                        <div className="flex flex-col sm:flex-row gap-2 max-w-xl">
+                          <div className="flex-1">
+                            <Select
+                              value={selectedUserId}
+                              onValueChange={setSelectedUserId}
+                              disabled={isUsersLoading || createInvitationMutation.isPending}
+                            >
+                              <SelectTrigger className="w-full bg-white dark:bg-neutral-950 h-9 text-xs">
+                                <SelectValue placeholder="Chọn thành viên..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {eligibleUsers.length === 0 ? (
+                                  <SelectItem value="none" disabled>
+                                    Không có thành viên khả dụng để mời
+                                  </SelectItem>
+                                ) : (
+                                  eligibleUsers.map((user) => (
+                                    <SelectItem key={user.id} value={user.id} className="text-xs">
+                                      {user.lastName} {user.firstName} ({user.email})
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={handleInviteUser}
+                            disabled={!selectedUserId || createInvitationMutation.isPending}
+                            className="h-9 text-xs"
+                          >
+                            Mời
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
         ) : (
           <div className="w-full space-y-6 pb-6">
             {/* Title block */}
@@ -504,9 +594,9 @@ export default function MeetingDetailPage() {
                   {meeting.title}
                 </h1>
                 <div className="flex gap-2">
-                  <span className="inline-flex items-center rounded-full bg-neutral-100 dark:bg-neutral-800 px-2.5 py-0.5 text-xs font-normal text-neutral-600 dark:text-neutral-300 border border-transparent">
+                  <Badge variant="secondary">
                     {meeting.meetingType === "INSTANT" ? "Tức thì" : "Đặt lịch"}
-                  </span>
+                  </Badge>
                   {renderStatusBadge(meeting.status)}
                 </div>
               </div>
@@ -610,6 +700,30 @@ export default function MeetingDetailPage() {
           </div>
         )}
       </div>
+
+      {meeting && (
+        <>
+          <CancelMeetingDialog
+            open={isCancelDialogOpen}
+            onOpenChange={setIsCancelDialogOpen}
+            meeting={meeting}
+            onConfirm={handleCancelMeeting}
+            isLoading={cancelMeetingMutation.isPending}
+          />
+          <EndMeetingDialog
+            open={isEndDialogOpen}
+            onOpenChange={setIsEndDialogOpen}
+            meeting={meeting}
+            onConfirm={handleEndMeeting}
+            isLoading={endMeetingMutation.isPending}
+          />
+          <EditMeetingDialog
+            open={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+            meeting={meeting}
+          />
+        </>
+      )}
     </div>
   );
 }

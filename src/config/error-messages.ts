@@ -43,6 +43,12 @@ export const ERROR_MESSAGES: Record<number, string> = {
   // Transcript (44xx)
   4401: "Đoạn phụ đề không hợp lệ",
 
+  // Meeting Minutes (45xx)
+  4501: "Không tìm thấy biên bản cuộc họp",
+  4502: "Cuộc họp không có dữ liệu phụ đề để tạo biên bản",
+  4503: "Tạo biên bản cuộc họp bằng AI thất bại",
+  4504: "Trạng thái biên bản cuộc họp hiện tại không cho phép thực hiện hành động này",
+
   // Mã trạng thái HTTP chuẩn để làm fallback
   400: "Yêu cầu gửi đi không hợp lệ",
   401: "Chưa xác thực hoặc phiên làm việc đã hết hạn",

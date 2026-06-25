@@ -5,6 +5,7 @@ export const API_ENDPOINTS = {
   meeting: "/meetings",
   meetingById: (id: string) => `/meetings/${id}`,
   myMeetings: "/meetings/my",
+  myMinutes: "/meetings/my/minutes",
   joinByCode: (joinCode: string) => `/meetings/join/${joinCode}`,
   cancelMeeting: (id: string) => `/meetings/${id}/cancel`,
   endMeeting: (id: string) => `/meetings/${id}/end`,
@@ -25,4 +26,7 @@ export const API_ENDPOINTS = {
   participants: (meetingId: string) => `/meetings/${meetingId}/participants`,
   removeParticipant: (meetingId: string, participantId: string) => `/meetings/${meetingId}/participants/${participantId}/remove`,
   transcriptBatch: (meetingId: string) => `/meetings/${meetingId}/transcript-segments/batch`,
+  generateMinutes: (meetingId: string) => `/meetings/${meetingId}/minutes/generate`,
+  minutes: (meetingId: string) => `/meetings/${meetingId}/minutes`,
+  publishMinutes: (meetingId: string) => `/meetings/${meetingId}/minutes/publish`,
 } as const;

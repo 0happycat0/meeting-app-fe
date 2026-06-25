@@ -49,6 +49,14 @@ export const paths = {
     invitations: {
       path: '/app/invitations',
       routePath: 'invitations',
+    },
+    minutes: {
+      path: '/app/minutes',
+      routePath: 'minutes',
+    },
+    minutesDetails: {
+      path: (id: string) => `/app/minutes/${id}`,
+      routePath: 'minutes/:meetingId',
     }
   },
   admin: {

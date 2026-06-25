@@ -88,3 +88,41 @@ export interface LiveKitJoinToken {
   participantName: string | null;
   expiresAt: string;
 }
+
+export type MeetingMinutesStatus = "GENERATING" | "COMPLETED" | "FAILED";
+
+export interface MeetingMinutes {
+  id: string;
+  meetingId: string;
+  status: MeetingMinutesStatus;
+  contentMarkdown: string | null;
+  published: boolean;
+  model: string;
+  generatedById: string;
+  generatedAt: string;
+  updatedAt: string;
+  sourceSegmentCount: number;
+  chunkCount: number;
+  failureReason: string | null;
+}
+
+export type MeetingMinutesListStatus = "NONE" | "GENERATING" | "COMPLETED" | "FAILED";
+
+export interface MeetingMinutesListItem {
+  meetingId: string;
+  meetingTitle: string;
+  meetingDescription: string | null;
+  hostId: string;
+  hostFirstName: string | null;
+  hostLastName: string | null;
+  meetingStatus: MeetingStatus;
+  scheduledStartAt: string | null;
+  scheduledEndAt: string | null;
+  minutesId: string | null;
+  minutesStatus: MeetingMinutesListStatus;
+  published: boolean;
+  generatedAt: string | null;
+  updatedAt: string | null;
+}
+
+

@@ -22,7 +22,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useMyMinutes } from "@/features/meetings/api/use-meetings";
-import type { MeetingMinutesListItem } from "@/types/entities/meeting";
+import type { MeetingMinutesListItem, MeetingType } from "@/types/entities/meeting";
 import { paths } from "@/config/paths";
 
 export default function MinutesListPage() {
@@ -47,21 +47,38 @@ export default function MinutesListPage() {
     return meeting.minutesStatus === activeTab;
   });
 
-  const renderTypeBadge = (scheduledStartAt: string | null) => {
+  const renderTypeBadge = (type: MeetingType) => {
     return (
       <Badge variant="secondary">
-        {scheduledStartAt ? "Đặt lịch" : "Tức thì"}
+        {type === "INSTANT" ? "Tức thì" : "Đặt lịch"}
       </Badge>
     );
   };
 
+
   const renderTimeCell = (meeting: MeetingMinutesListItem) => {
-    const start = meeting.scheduledStartAt || meeting.generatedAt;
+    if (meeting.meetingType === "INSTANT") {
+      return <span className="text-muted-foreground">—</span>;
+    }
+
+    const start = meeting.scheduledStartAt;
+    const end = meeting.scheduledEndAt;
     if (!start) return <span className="text-muted-foreground">—</span>;
 
     const startDate = new Date(start);
     const formattedStart = format(startDate, "HH:mm d 'thg' M, yyyy", { locale: vi });
-    return <span className="text-sm text-neutral-600 dark:text-neutral-300">{formattedStart}</span>;
+
+    if (!end) return <div>{formattedStart}</div>;
+
+    const endDate = new Date(end);
+    const formattedEnd = format(endDate, "HH:mm d 'thg' M, yyyy", { locale: vi });
+
+    return (
+      <div className="flex flex-col text-sm text-neutral-600 dark:text-neutral-300">
+        <span>{formattedStart}</span>
+        <span>{formattedEnd}</span>
+      </div>
+    );
   };
 
   const renderMinutesStatusBadge = (meeting: MeetingMinutesListItem) => {
@@ -157,7 +174,7 @@ export default function MinutesListPage() {
             </div>
           </div>
         ) : (
-           <Table>
+          <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[40%] font-medium">Tên cuộc họp</TableHead>
@@ -172,7 +189,7 @@ export default function MinutesListPage() {
                 const isHost = meeting.hostId === currentUserId;
                 const hostName = [meeting.hostLastName, meeting.hostFirstName].filter(Boolean).join(" ").trim() || "Chưa rõ";
                 return (
-                  <TableRow 
+                  <TableRow
                     key={meeting.meetingId}
                     onClick={() => navigate(paths.app.minutesDetails.path(meeting.meetingId))}
                     className="cursor-pointer hover:bg-neutral-50/50"
@@ -187,7 +204,7 @@ export default function MinutesListPage() {
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>{renderTypeBadge(meeting.scheduledStartAt)}</TableCell>
+                    <TableCell>{renderTypeBadge(meeting.meetingType)}</TableCell>
                     <TableCell>{renderMinutesStatusBadge(meeting)}</TableCell>
                     <TableCell>
                       <span className="text-sm">

@@ -381,7 +381,7 @@ export default function MinutesDetailPage() {
           <strong className="text-neutral-800">
             {[meeting.hostLastName, meeting.hostFirstName].filter(Boolean).join(" ").trim() || "Chủ phòng"}
           </strong>{" "}
-          • Tạo ngày: {format(new Date(meeting.createdAt), "dd/MM/yyyy")}
+          • Ngày tạo: {format(new Date(meeting.createdAt), "dd/MM/yyyy")}
         </p>
         {meeting.description && (
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2 bg-neutral-50 dark:bg-neutral-900/50 p-3 rounded-md border border-neutral-100 dark:border-neutral-800">

@@ -50,6 +50,7 @@ apiClient.interceptors.response.use(
       message: getErrorMessage(code, data?.message || error.message),
     };
 
+    // Xử lý tự động khi token hết hạn / chưa đăng nhập ở phía server
     if (httpStatus === 401) {
       console.warn("Chưa xác thực hoặc phiên đăng nhập hết hạn, yêu cầu đăng nhập lại...");
       keycloak.login({

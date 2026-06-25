@@ -112,6 +112,7 @@ export interface MeetingMinutesListItem {
   meetingId: string;
   meetingTitle: string;
   meetingDescription: string | null;
+  meetingType: MeetingType;
   hostId: string;
   hostFirstName: string | null;
   hostLastName: string | null;

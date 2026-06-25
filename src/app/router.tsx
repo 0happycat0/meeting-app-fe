@@ -15,6 +15,8 @@ import VideoRoomPage from "./pages/app/room/VideoRoomPage";
 import JoinCodeResolvePage from "./pages/app/join/JoinCodeResolvePage";
 import { InvitationListPage } from "./pages/app/invitations/InvitationListPage";
 import PreviewPage from "./pages/app/preview/PreviewPage";
+import MinutesListPage from "./pages/app/minutes/MinutesListPage";
+import MinutesDetailPage from "./pages/app/minutes/MinutesDetailPage";
 
 export const router = createBrowserRouter([
   {
@@ -63,6 +65,14 @@ export const router = createBrowserRouter([
           {
             path: paths.app.invitations.routePath,
             element: <InvitationListPage />,
+          },
+          {
+            path: paths.app.minutes.routePath,
+            element: <MinutesListPage />,
+          },
+          {
+            path: paths.app.minutesDetails.routePath,
+            element: <MinutesDetailPage />,
           },
         ],
       },

@@ -4,6 +4,7 @@ import {
   Users,
   ShieldCheck,
   Video,
+  FileText,
 } from "lucide-react";
 
 import { NavMain } from "@/components/sidebar/NavMain";
@@ -34,6 +35,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Cuộc họp",
       url: paths.app.meetings.path,
       icon: Video,
+    },
+    {
+      title: "Biên bản cuộc họp",
+      url: paths.app.minutes.path,
+      icon: FileText,
     },
   ];
 

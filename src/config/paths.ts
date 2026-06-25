@@ -62,7 +62,11 @@ export const paths = {
   admin: {
     root: {
       path: '/admin',
-      routePath: '/admin',
+      routePath: 'admin',
+    },
+    dashboard: {
+      path: '/admin/dashboard',
+      routePath: 'dashboard',
     },
     users: {
       path: '/admin/users',

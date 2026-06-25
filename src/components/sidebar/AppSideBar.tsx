@@ -30,34 +30,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     email: authUser?.email || "Chưa có email",
   };
 
-  const navItems: React.ComponentProps<typeof NavMain>["items"] = [
-    {
-      title: "Cuộc họp",
-      url: paths.app.meetings.path,
-      icon: Video,
-    },
-    {
-      title: "Biên bản cuộc họp",
-      url: paths.app.minutes.path,
-      icon: FileText,
-    },
-  ];
-
-  if (isUserAdmin) {
-    navItems.push(
-      {
-        title: "Dashboard Admin",
-        url: paths.admin.root.path,
-        icon: LayoutDashboard,
-        exactlyMatchPathname: true,
-      },
-      {
-        title: "Quản lý Người dùng",
-        url: paths.admin.users.path,
-        icon: Users,
-      }
-    );
-  }
+  const navItems: React.ComponentProps<typeof NavMain>["items"] = isUserAdmin
+    ? [
+        {
+          title: "Dashboard Admin",
+          url: paths.admin.dashboard.path,
+          icon: LayoutDashboard,
+          exactlyMatchPathname: true,
+        },
+        {
+          title: "Quản lý Người dùng",
+          url: paths.admin.users.path,
+          icon: Users,
+        },
+      ]
+    : [
+        {
+          title: "Cuộc họp",
+          url: paths.app.meetings.path,
+          icon: Video,
+        },
+        {
+          title: "Biên bản cuộc họp",
+          url: paths.app.minutes.path,
+          icon: FileText,
+        },
+      ];
 
   return (
     <Sidebar

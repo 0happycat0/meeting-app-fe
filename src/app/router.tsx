@@ -83,13 +83,18 @@ export const router = createBrowserRouter([
     ],
   },
   {
+    path: paths.admin.root.routePath,
     element: <AdminRoute />,
     children: [
       {
         element: <AdminLayout />,
         children: [
           {
-            path: paths.admin.root.routePath,
+            index: true,
+            element: <Navigate to={paths.admin.dashboard.path} replace />,
+          },
+          {
+            path: paths.admin.dashboard.routePath,
             element: <AdminDashboard />,
           },
           {

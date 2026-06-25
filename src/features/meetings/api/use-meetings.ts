@@ -24,6 +24,10 @@ import {
   rejectWaitingParticipant,
   fetchMeetingParticipants,
   removeParticipant,
+  generateMeetingMinutes,
+  fetchMeetingMinutes,
+  publishMeetingMinutes,
+  fetchMyMinutes,
   type CreateMeetingRequest,
   type UpdateMeetingRequest,
   type GetMyMeetingsParams,
@@ -35,6 +39,8 @@ import type {
   MeetingInvitation,
   MeetingParticipant,
   LiveKitJoinToken,
+  MeetingMinutes,
+  MeetingMinutesListItem,
 } from "@/types/entities/meeting";
 import type { ApiResponse, PageResponse } from "@/types/api";
 
@@ -43,6 +49,8 @@ export const MEETINGS_QUERY_KEYS = {
   my: (params?: GetMyMeetingsParams) => ["meetings", "my", params ?? {}] as const,
   detail: (id: string) => ["meetings", "detail", id] as const,
   join: (joinCode: string) => ["meetings", "join", joinCode] as const,
+  minutes: (meetingId: string) => ["meetings", "minutes", meetingId] as const,
+  myMinutes: () => ["meetings", "my-minutes"] as const,
 };
 
 // Hook tạo cuộc họp mới (Mutation)
@@ -328,3 +336,61 @@ export function useRemoveParticipant(meetingId: string) {
     },
   });
 }
+
+// Hook tạo/tái tạo biên bản cuộc họp (Mutation)
+export function useGenerateMeetingMinutes(meetingId: string) {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<MeetingMinutes>, ApiError, void>({
+    mutationFn: () => generateMeetingMinutes(meetingId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: MEETINGS_QUERY_KEYS.minutes(meetingId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: MEETINGS_QUERY_KEYS.myMinutes(),
+      });
+    },
+  });
+}
+
+// Hook lấy biên bản cuộc họp (Query có hỗ trợ Polling)
+export function useMeetingMinutes(
+  meetingId: string,
+  options?: { enabled?: boolean; refetchInterval?: number | false }
+) {
+  return useQuery<ApiResponse<MeetingMinutes>, ApiError>({
+    queryKey: MEETINGS_QUERY_KEYS.minutes(meetingId),
+    queryFn: () => fetchMeetingMinutes(meetingId),
+    enabled: options?.enabled !== false && !!meetingId,
+    refetchInterval: options?.refetchInterval ?? false,
+    retry: (failureCount, error) => {
+      if (error.code === 4501) return false;
+      return failureCount < 3;
+    },
+  });
+}
+
+// Hook công bố biên bản cuộc họp (Mutation)
+export function usePublishMeetingMinutes(meetingId: string) {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<MeetingMinutes>, ApiError, void>({
+    mutationFn: () => publishMeetingMinutes(meetingId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: MEETINGS_QUERY_KEYS.minutes(meetingId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: MEETINGS_QUERY_KEYS.myMinutes(),
+      });
+    },
+  });
+}
+
+// Hook lấy danh sách biên bản cuộc họp của tôi (Query)
+export function useMyMinutes() {
+  return useQuery<ApiResponse<PageResponse<MeetingMinutesListItem>>, ApiError>({
+    queryKey: MEETINGS_QUERY_KEYS.myMinutes(),
+    queryFn: fetchMyMinutes,
+  });
+}
+

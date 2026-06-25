@@ -9,6 +9,8 @@ import type {
   MeetingInvitation,
   MeetingParticipant,
   LiveKitJoinToken,
+  MeetingMinutes,
+  MeetingMinutesListItem,
 } from "@/types/entities/meeting";
 
 export interface CreateMeetingRequest {
@@ -293,3 +295,42 @@ export const uploadTranscriptBatch = async (
   );
   return response.data.result;
 };
+
+// POST /meetings/{meetingId}/minutes/generate
+export const generateMeetingMinutes = async (
+  meetingId: string
+): Promise<ApiResponse<MeetingMinutes>> => {
+  const response = await apiClient.post<ApiResponse<MeetingMinutes>>(
+    API_ENDPOINTS.generateMinutes(meetingId)
+  );
+  return response.data;
+};
+
+// GET /meetings/{meetingId}/minutes
+export const fetchMeetingMinutes = async (
+  meetingId: string
+): Promise<ApiResponse<MeetingMinutes>> => {
+  const response = await apiClient.get<ApiResponse<MeetingMinutes>>(
+    API_ENDPOINTS.minutes(meetingId)
+  );
+  return response.data;
+};
+
+// PATCH /meetings/{meetingId}/minutes/publish
+export const publishMeetingMinutes = async (
+  meetingId: string
+): Promise<ApiResponse<MeetingMinutes>> => {
+  const response = await apiClient.patch<ApiResponse<MeetingMinutes>>(
+    API_ENDPOINTS.publishMinutes(meetingId)
+  );
+  return response.data;
+};
+
+// GET /meetings/my/minutes
+export const fetchMyMinutes = async (): Promise<ApiResponse<PageResponse<MeetingMinutesListItem>>> => {
+  const response = await apiClient.get<ApiResponse<PageResponse<MeetingMinutesListItem>>>(
+    API_ENDPOINTS.myMinutes
+  );
+  return response.data;
+};
+

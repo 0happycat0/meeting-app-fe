@@ -1,7 +1,8 @@
 import Keycloak from 'keycloak-js';
 
 const keycloakConfig = {
-  url: 'https://meet.soict.io/auth',
+  // url: 'https://meet.soict.io/auth',
+  url: 'http://localhost:8081/auth',
   realm: 'meeting',
   clientId: 'meeting-web-client'
 };

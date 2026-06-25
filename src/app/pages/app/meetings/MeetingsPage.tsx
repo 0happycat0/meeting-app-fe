@@ -240,12 +240,20 @@ export default function MeetingsPage() {
           onValueChange={(value) => setActiveTab(value as "ALL" | MeetingStatus)}
           className="w-full sm:w-auto"
         >
-          <TabsList className="bg-neutral-100/80 dark:bg-neutral-900/80">
-            <TabsTrigger value="ALL">Tất cả</TabsTrigger>
-            <TabsTrigger value="ACTIVE">Đang diễn ra</TabsTrigger>
-            <TabsTrigger value="SCHEDULED">Sắp tới</TabsTrigger>
-            <TabsTrigger value="ENDED">Đã kết thúc</TabsTrigger>
-            <TabsTrigger value="CANCELLED">Đã huỷ</TabsTrigger>
+          <TabsList className="bg-neutral-100/80 dark:bg-neutral-900/80 p-1 flex-wrap h-auto gap-1">
+            <TabsTrigger value="ALL">Tất cả ({meetings.length})</TabsTrigger>
+            <TabsTrigger value="ACTIVE">
+              Đang diễn ra ({meetings.filter((m) => m.status === "ACTIVE").length})
+            </TabsTrigger>
+            <TabsTrigger value="SCHEDULED">
+              Sắp tới ({meetings.filter((m) => m.status === "SCHEDULED").length})
+            </TabsTrigger>
+            <TabsTrigger value="ENDED">
+              Đã kết thúc ({meetings.filter((m) => m.status === "ENDED").length})
+            </TabsTrigger>
+            <TabsTrigger value="CANCELLED">
+              Đã huỷ ({meetings.filter((m) => m.status === "CANCELLED").length})
+            </TabsTrigger>
           </TabsList>
         </Tabs>
 

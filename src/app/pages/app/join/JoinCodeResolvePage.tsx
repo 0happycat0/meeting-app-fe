@@ -29,7 +29,7 @@ export default function JoinCodeResolvePage() {
 
         toast.success(`Tìm thấy cuộc họp: ${meeting.title}`);
         
-        navigate(`${paths.app.preview.path(meeting.id)}?joinCode=${joinCode}`);
+        navigate(paths.app.preview.path(joinCode));
       } catch (err: any) {
         setError(err.message || "Mã tham gia không hợp lệ hoặc cuộc họp đã kết thúc.");
         toast.error("Không thể giải quyết mã tham gia.");

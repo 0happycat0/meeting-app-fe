@@ -31,20 +31,20 @@ export const paths = {
       routePath: 'meetings/:meetingId',
     },
     preview: {
-      path: (id: string) => `/app/preview/${id}`,
-      routePath: 'preview/:meetingId',
+      path: (joinCode: string) => `/app/preview/${joinCode}`,
+      routePath: 'preview/:joinCode',
     },
     lobby: {
-      path: (id: string) => `/app/lobby/${id}`,
-      routePath: 'lobby/:meetingId',
+      path: (joinCode: string) => `/app/lobby/${joinCode}`,
+      routePath: 'lobby/:joinCode',
     },
     join: {
       path: (code: string) => `/app/join/${code}`,
       routePath: 'join/:joinCode',
     },
     room: {
-      path: (id: string) => `/app/room/${id}`,
-      routePath: 'room/:meetingId',
+      path: (joinCode: string) => `/app/room/${joinCode}`,
+      routePath: 'room/:joinCode',
     },
     invitations: {
       path: '/app/invitations',

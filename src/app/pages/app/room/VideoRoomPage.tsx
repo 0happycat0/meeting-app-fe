@@ -17,13 +17,14 @@ import {
   useLeaveMeeting,
   useLiveKitJoinToken,
   useEndMeeting,
+  useResolveJoinCode,
 } from "@/features/meetings/api/use-meetings";
 import { useUsers } from "@/features/users/api/use-users";
 import { paths } from "@/config/paths";
 import { RoomActiveContent } from "./RoomActiveContent";
 
 export default function VideoRoomPage() {
-  const { meetingId } = useParams<{ meetingId: string }>();
+  const { joinCode: routeParam } = useParams<{ joinCode: string }>();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
   const currentUserId = authUser?.sub;
@@ -35,13 +36,25 @@ export default function VideoRoomPage() {
   const [isTokenLoading, setIsTokenLoading] = useState(true);
   const [tokenError, setTokenError] = useState<string | null>(null);
 
+  const isUuid = routeParam && routeParam.length === 36 && routeParam.includes("-");
+  const meetingIdFromRoute = isUuid ? routeParam : null;
+  const joinCode = isUuid ? null : routeParam;
+
   // Queries
-  const { data: meetingResponse, isLoading: isMeetingLoading } = useMeetingDetail(
-    meetingId ?? ""
+  const { data: resolveResponse, isLoading: isResolveLoading } = useResolveJoinCode(
+    joinCode ?? "",
+    { enabled: !!joinCode }
   );
 
-  const meeting = meetingResponse?.result;
+  const { data: detailResponse, isLoading: isDetailLoading } = useMeetingDetail(
+    meetingIdFromRoute ?? "",
+    { enabled: !!meetingIdFromRoute }
+  );
+
+  const meeting = joinCode ? resolveResponse?.result : detailResponse?.result;
+  const isMeetingLoading = joinCode ? isResolveLoading : isDetailLoading;
   const isHost = meeting?.hostId === currentUserId;
+  const meetingId = meeting?.id;
 
   // Token Fetch Mutation
   const fetchTokenMutation = useLiveKitJoinToken(meetingId ?? "");

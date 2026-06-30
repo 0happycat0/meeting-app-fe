@@ -353,7 +353,7 @@ export default function MeetingsPage() {
                           {(meeting.status === "ACTIVE" || meeting.status === "SCHEDULED") && (
                             <DropdownMenuItem
                               className="text-green-600 dark:text-green-400"
-                              onClick={() => navigate(`${paths.app.preview.path(meeting.id)}?joinCode=${meeting.joinCode}`)}
+                              onClick={() => navigate(paths.app.preview.path(meeting.joinCode))}
                             >
                               <SquarePlay className="size-4 mr-2" />
                               Tham gia

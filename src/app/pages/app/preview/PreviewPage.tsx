@@ -24,14 +24,16 @@ import { paths } from "@/config/paths";
 import { getErrorMessage } from "@/config/error-messages";
 
 export default function PreviewPage() {
-  const { meetingId } = useParams<{ meetingId: string }>();
+  const { joinCode: routeParam } = useParams<{ joinCode: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user: authUser } = useAuth();
   const currentUserId = authUser?.sub;
 
-  const joinCode = searchParams.get("joinCode");
   const invitationId = searchParams.get("invitationId");
+  const isUuid = routeParam && routeParam.length === 36 && routeParam.includes("-");
+  const meetingId = isUuid ? routeParam : null;
+  const joinCode = isUuid ? null : routeParam;
 
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
@@ -143,7 +145,7 @@ export default function PreviewPage() {
     data: detailResponse,
     isLoading: isDetailLoading,
     error: detailError,
-  } = useMeetingDetail(meetingId ?? "", { enabled: !joinCode && !!meetingId });
+  } = useMeetingDetail(meetingId ?? "", { enabled: !!meetingId });
 
   const meeting = joinCode ? resolveResponse?.result : detailResponse?.result;
   const isMeetingLoading = joinCode ? isResolveLoading : isDetailLoading;
@@ -168,20 +170,20 @@ export default function PreviewPage() {
       if (isHost) {
         // Host skips waiting room and goes directly to Video Room
         toast.success("Đang kết nối vào phòng họp...");
-        navigate(paths.app.room.path(meeting.id));
+        navigate(paths.app.room.path(meeting.joinCode));
       } else {
         // Participant requests waiting room entry
         if (invitationId) {
           await requestJoinByInvitationMutation.mutateAsync(invitationId);
-        } else if (joinCode) {
-          await requestJoinByCodeMutation.mutateAsync(joinCode);
+        } else if (meeting.joinCode) {
+          await requestJoinByCodeMutation.mutateAsync(meeting.joinCode);
         } else {
           toast.error("Không xác định được nguồn tham gia (Join Code hoặc Lời mời).");
           return;
         }
 
         toast.success("Yêu cầu tham gia đã được gửi!");
-        navigate(paths.app.lobby.path(meeting.id));
+        navigate(paths.app.lobby.path(meeting.joinCode));
       }
     } catch (err: any) {
       toast.error(err.message || "Gửi yêu cầu tham gia thất bại.");

@@ -36,7 +36,7 @@ import {
   useMeetingParticipants,
   useRemoveParticipant,
 } from "@/features/meetings/api/use-meetings";
-import type { Meeting } from "@/types/entities/meeting";
+import type { Meeting, JoinMeeting } from "@/types/entities/meeting";
 
 import { useLocalTranscript } from "@/hooks/use-local-transcript";
 import { CustomControlBar } from "./CustomControlBar";
@@ -50,7 +50,7 @@ const isSameTrack = (a?: any, b?: any) => {
 };
 
 interface RoomActiveContentProps {
-  meeting: Meeting;
+  meeting: JoinMeeting | Meeting;
   isHost: boolean;
   waitingParticipants: any[];
   handleApprove: (id: string) => void;

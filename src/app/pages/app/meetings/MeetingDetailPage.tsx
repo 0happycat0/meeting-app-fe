@@ -183,7 +183,7 @@ export default function MeetingDetailPage() {
   };
 
   const handleJoinMeeting = () => {
-    navigate(`${paths.app.preview.path(meeting.id)}?joinCode=${meeting.joinCode}`);
+    navigate(paths.app.preview.path(meeting.joinCode));
   };
 
   const handleInviteUser = async () => {
@@ -490,9 +490,7 @@ export default function MeetingDetailPage() {
                                   <div className="flex flex-col">
                                     <span className="font-semibold text-neutral-900 dark:text-neutral-100 text-xs">
                                       {userDetail.fullName}
-                                    </span>
-                                    <span className="text-[10px] text-muted-foreground">@{userDetail.username}</span>
-                                  </div>
+                                    </span>                                  </div>
                                 </TableCell>
                                 <TableCell className="text-xs text-neutral-600 dark:text-neutral-300 py-2">
                                   {userDetail.email}

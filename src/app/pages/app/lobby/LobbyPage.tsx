@@ -11,11 +11,12 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   useMeetingDetail,
   useMyParticipantStatus,
+  useResolveJoinCode,
 } from "@/features/meetings/api/use-meetings";
 import { paths } from "@/config/paths";
 
 export default function LobbyPage() {
-  const { meetingId } = useParams<{ meetingId: string }>();
+  const { joinCode: routeParam } = useParams<{ joinCode: string }>();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
   const currentUserId = authUser?.sub;
@@ -23,12 +24,23 @@ export default function LobbyPage() {
   const [hasRequested, setHasRequested] = useState(true);
   const [useBackendMockBypass, setUseBackendMockBypass] = useState(false);
 
+  const isUuid = routeParam && routeParam.length === 36 && routeParam.includes("-");
+  const meetingId = isUuid ? routeParam : null;
+  const joinCode = isUuid ? null : routeParam;
+
   // Queries & Mutations
-  const { data: meetingResponse, isLoading: isMeetingLoading } = useMeetingDetail(
-    meetingId ?? ""
+  const { data: resolveResponse, isLoading: isResolveLoading } = useResolveJoinCode(
+    joinCode ?? "",
+    { enabled: !!joinCode }
   );
 
-  const meeting = meetingResponse?.result;
+  const { data: detailResponse, isLoading: isDetailLoading } = useMeetingDetail(
+    meetingId ?? "",
+    { enabled: !!meetingId }
+  );
+
+  const meeting = joinCode ? resolveResponse?.result : detailResponse?.result;
+  const isMeetingLoading = joinCode ? isResolveLoading : isDetailLoading;
   const isHost = meeting?.hostId === currentUserId;
 
   // Poll participant status every 2500ms
@@ -36,8 +48,8 @@ export default function LobbyPage() {
     data: statusResponse,
     error: statusError,
     isLoading: isStatusLoading,
-  } = useMyParticipantStatus(meetingId ?? "", {
-    enabled: !!meetingId && !isHost && hasRequested && !useBackendMockBypass,
+  } = useMyParticipantStatus(meeting?.id ?? "", {
+    enabled: !!meeting?.id && !isHost && hasRequested && !useBackendMockBypass,
     refetchInterval: 2500,
   });
 
@@ -46,24 +58,24 @@ export default function LobbyPage() {
   // Redirect host immediately
   useEffect(() => {
     if (meeting && isHost) {
-      navigate(paths.app.room.path(meeting.id));
+      navigate(paths.app.room.path(meeting.joinCode));
     }
   }, [meeting, isHost, navigate]);
 
   // Handle status transitions
   useEffect(() => {
-    if (participantStatus) {
+    if (participantStatus && meeting) {
       const status = participantStatus.participationStatus;
       if (status === "APPROVED" || status === "JOINED") {
         toast.success("Yêu cầu tham gia đã được duyệt!");
-        navigate(paths.app.room.path(meetingId ?? ""));
+        navigate(paths.app.room.path(meeting.joinCode));
       } else if (status === "REJECTED") {
         toast.error("Bạn đã bị từ chối tham gia cuộc họp.");
       } else if (status === "REMOVED") {
         toast.error("Bạn đã bị xóa khỏi cuộc họp.");
       }
     }
-  }, [participantStatus, meetingId, navigate]);
+  }, [participantStatus, meeting, navigate]);
 
   if (isMeetingLoading || (isStatusLoading && hasRequested && !useBackendMockBypass)) {
     return (
@@ -101,7 +113,7 @@ export default function LobbyPage() {
                 Chế độ phát triển: Auto-bypass phòng chờ
               </div>
               <Button
-                onClick={() => navigate(paths.app.room.path(meeting.id))}
+                onClick={() => navigate(paths.app.room.path(meeting.joinCode))}
                 className="w-full bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200"
               >
                 Vào phòng họp ngay
